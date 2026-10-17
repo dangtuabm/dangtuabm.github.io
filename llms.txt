@@ -1,0 +1,29 @@
+# ABM — A.I Business Master
+
+> Công ty Cổ phần Công nghệ và Đào tạo ABM — Đơn vị Kiến tạo & Đồng hành Chuyển đổi số bằng A.I tại Việt Nam. Phát triển năng lực lãnh đạo — Kiến tạo Đội ngũ Nhân sự số — Đồng hành chuyển đổi doanh nghiệp. Triết lý: Brain First – A.I Second.
+
+ABM phục vụ hai nhóm khách hàng: (1) Cá nhân — lãnh đạo từ cấp trung trở lên; (2) Tổ chức — doanh nghiệp SMEs. Kiến trúc sản phẩm 03 tầng: Nền móng (A.I Mastery For CEO) → Chuyên sâu (08 chủ đề) → Chuyển đổi (Doanh nghiệp A.I tự hành). 03 giai đoạn trưởng thành A.I doanh nghiệp: A.I cho mọi người → Doanh nghiệp tác nhân → Quản trị A.I.
+
+Số liệu: 300.000+ người học qua Zoom · 6.000+ học viên chuyên sâu · 1.200+ lãnh đạo doanh nghiệp · 100+ khóa học · 65+ chương trình Inhouse · 50+ doanh nghiệp, tổ chức lớn.
+
+Liên hệ: Hotline/Zalo 09.111.29.333 · contact@abmedu.vn · https://abmedu.vn
+
+## Dành cho Lãnh đạo
+- [Lãnh đạo làm chủ A.I](https://abmedu.vn/san-pham/lanh-dao-lam-chu-ai): bài mở tư duy — xác định bài toán, giao việc, kiểm chứng, tích lũy
+- [A.I Mastery For CEO](https://abmedu.vn/san-pham/ai-mastery-for-ceo): chương trình Nền móng – Chủ lực; hành trình 07 ngày Quick Win → 04 Tuần → 60 ngày
+- [08 Chủ đề chuyên sâu](https://abmedu.vn/san-pham/chu-de-chuyen-sau): Second Brain, Skill, Digital Workforce, Không gian làm việc số, A.I Agent Automation, Chatbot Doanh nghiệp, Vibe Coding, A.I Governance & ROI
+- [Coaching 1:1](https://abmedu.vn/san-pham/coaching-1-1): đồng hành cá nhân hóa cho lãnh đạo cấp cao
+
+## Dành cho Doanh nghiệp
+- [Doanh nghiệp A.I tự hành](https://abmedu.vn/san-pham/doanh-nghiep-ai-tu-hanh): bài mở tư duy — hệ thống Người + Nhân sự số
+- [Huấn luyện Inhouse cho SMEs](https://abmedu.vn/san-pham/huan-luyen-inhouse)
+- [Xây dựng Đội ngũ Nhân sự số](https://abmedu.vn/san-pham/doi-ngu-nhan-su-so): Done With You — đồng hành cùng triển khai
+- [LMS + Số hóa bài giảng điện tử](https://abmedu.vn/san-pham/lms-so-hoa-bai-giang)
+
+## Về ABM
+- [Giới thiệu](https://abmedu.vn/ve-abm/gioi-thieu)
+- [Đội ngũ chuyên gia](https://abmedu.vn/ve-abm/doi-ngu-chuyen-gia)
+- [Khách hàng & Đối tác](https://abmedu.vn/ve-abm/khach-hang-doi-tac)
+- [Dự án "Vì Một Việt Nam Phổ Cập A.I"](https://abmedu.vn/ve-abm/vi-mot-viet-nam-pho-cap-ai)
+- [Sản phẩm Demo](https://abmedu.vn/demo)
+- [Liên hệ](https://abmedu.vn/lien-he)
