@@ -1,0 +1,13 @@
+{
+  "name": "ABM Second Brain — Não bộ thứ hai cho Lãnh đạo",
+  "short_name": "ABM Brain",
+  "start_url": "/demo/second-brain/",
+  "scope": "/demo/second-brain/",
+  "display": "standalone",
+  "background_color": "#030548",
+  "theme_color": "#030548",
+  "lang": "vi",
+  "icons": [
+    { "src": "/brand/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

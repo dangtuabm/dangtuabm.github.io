@@ -1,0 +1,1458 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Não bộ thứ hai cho Lãnh đạo | ABM Second Brain</title>
+<meta name="description" content="Nền tảng ghi chú liên kết kiểu Obsidian chạy ngay trên trình duyệt, không cần cài đặt, bổ sung các tính năng lãnh đạo – doanh nghiệp cần: sổ quyết định, biên bản họp, việc cần làm, mục tiêu, SOP, đóng gói ngữ cảnh cho A.I.">
+<meta name="theme-color" content="#030548">
+<link rel="manifest" href="/demo/second-brain/manifest.json">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/brand/icon-512.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600&display=swap">
+<style>
+:root{
+  --navy:#030548;--navy-2:#0b0f63;--navy-3:#1a1f7a;--gold:#f9b508;--gold-soft:#fff4d6;--red:#d42a2a;
+  --bg:#f6f7fb;--panel:#ffffff;--line:#e3e5ef;--ink:#12142b;--ink-2:#474a66;--ink-3:#8a8fa8;--hover:#eef0f7;
+  --font-head:"Montserrat",system-ui,sans-serif;--font-body:"Be Vietnam Pro",system-ui,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --r:12px;--shadow:0 1px 2px #0305480f,0 8px 24px #03054812;
+  --sb-w:272px;--rp-w:300px;--hdr-h:56px;
+}
+:root[data-theme="dark"]{
+  --bg:#0b0d1f;--panel:#12142b;--line:#262a4a;--ink:#eef0fa;--ink-2:#b6bad6;--ink-3:#7c81a3;--hover:#1b1e3d;--gold-soft:#3a2d05;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--bg:#0b0d1f;--panel:#12142b;--line:#262a4a;--ink:#eef0fa;--ink-2:#b6bad6;--ink-3:#7c81a3;--hover:#1b1e3d;--gold-soft:#3a2d05;}
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 var(--font-body);overflow:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--navy-3);text-decoration:none}
+:root[data-theme="dark"] a,.dark a{color:#9ea6ff}
+h1,h2,h3,h4{font-family:var(--font-head);line-height:1.25;margin:0 0 .4em}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* ---------- App shell ---------- */
+#app{display:grid;grid-template-rows:var(--hdr-h) 1fr;height:100%}
+header.top{background:var(--navy);color:#fff;display:flex;align-items:center;gap:10px;padding:0 14px;border-bottom:3px solid var(--gold);overflow:hidden;min-width:0}
+header.top .brand{display:flex;align-items:center;gap:10px;font:800 15px var(--font-head);letter-spacing:.02em;white-space:nowrap}
+header.top .brand img{width:28px;height:28px;border-radius:7px}
+header.top .brand small{display:block;font:500 10.5px var(--font-body);letter-spacing:.14em;text-transform:uppercase;color:#ffffffb0}
+header.top .spacer{flex:1}
+.ibtn{background:transparent;border:1px solid #ffffff2e;color:#fff;border-radius:9px;height:36px;padding:0 12px;display:inline-flex;align-items:center;gap:8px;font-weight:500;font-size:13.5px;white-space:nowrap}
+.ibtn:hover{background:#ffffff14}
+.ibtn.gold{background:var(--gold);color:var(--navy);border-color:var(--gold);font-weight:700}
+.ibtn.gold:hover{background:#ffc632}
+.ibtn svg{width:17px;height:17px}
+.ibtn kbd{font:600 10.5px var(--mono);background:#ffffff1f;padding:2px 5px;border-radius:5px}
+#burger{display:none}
+main.body{display:grid;grid-template-columns:var(--sb-w) 1fr var(--rp-w);min-height:0}
+main.body.no-rp{grid-template-columns:var(--sb-w) 1fr}
+
+/* ---------- Sidebar ---------- */
+aside.sb{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.sb nav{padding:10px 8px 6px}
+.sb nav a{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:9px;color:var(--ink-2);font-weight:500;font-size:14px}
+.sb nav a svg{width:17px;height:17px;flex:none;opacity:.8}
+.sb nav a:hover{background:var(--hover);color:var(--ink)}
+.sb nav a.on{background:var(--navy);color:#fff}
+.sb nav a .n{margin-left:auto;font-size:11.5px;background:var(--hover);color:var(--ink-2);padding:1px 7px;border-radius:99px;font-weight:600}
+.sb nav a.on .n{background:#ffffff26;color:#fff}
+.sb nav .grp{font:700 10.5px var(--font-head);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);padding:10px 10px 4px}
+.sb .list{flex:1;overflow:auto;border-top:1px solid var(--line);padding:8px}
+.sb .list .hd{display:flex;align-items:center;gap:6px;padding:4px 6px 8px}
+.sb .list .hd input{flex:1;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:6px 9px;font-size:13px;min-width:0}
+.ni{display:block;padding:7px 9px;border-radius:8px;color:var(--ink);line-height:1.3}
+.ni:hover{background:var(--hover)}
+.ni.on{background:var(--gold-soft)}
+.ni b{display:block;font-weight:600;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ni small{color:var(--ink-3);font-size:11.5px;display:flex;gap:6px;align-items:center}
+.pill{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:99px;color:#fff;letter-spacing:.02em;white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}
+.lv-xanh{background:#16a34a}.lv-vang{background:#f9b508}.lv-do{background:#d42a2a}
+
+/* ---------- Main ---------- */
+section.main{min-width:0;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.view{flex:1;overflow:auto;padding:22px clamp(14px,3vw,36px) 60px}
+.view h1{font-size:clamp(1.3rem,2vw,1.7rem);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.view h1 .sub{font:500 13px var(--font-body);color:var(--ink-3)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:4px 0 18px}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:9px;height:36px;padding:0 13px;display:inline-flex;align-items:center;gap:7px;font-weight:500;font-size:13.5px;white-space:nowrap}
+.btn:hover{background:var(--hover)}
+.btn.navy{background:var(--navy);color:#fff;border-color:var(--navy)}
+.btn.navy:hover{background:var(--navy-2)}
+.btn.gold{background:var(--gold);color:var(--navy);border-color:var(--gold);font-weight:700}
+.btn.danger{color:var(--red)}
+.btn.sm{height:30px;padding:0 10px;font-size:12.5px}
+.btn svg{width:16px;height:16px}
+.btn.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.seg button{border:0;background:var(--panel);height:34px;padding:0 12px;font-size:13px;font-weight:500}
+.seg button.on{background:var(--navy);color:#fff}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow)}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr))}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;cursor:pointer}
+.tile:hover{border-color:var(--navy-3)}
+.tile .k{font:800 26px var(--font-head);color:var(--navy);line-height:1.1}
+:root[data-theme="dark"] .tile .k{color:#fff}
+.tile .l{color:var(--ink-2);font-size:13px;margin-top:4px}
+.tile.warn .k{color:var(--red)}
+.card h3{font-size:14.5px;display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.card h3 svg{width:18px;height:18px;flex:none;color:var(--navy-3)}
+:root[data-theme="dark"] .card h3 svg{color:var(--gold)}
+.card h3 .n{margin-left:auto;font-weight:500;color:var(--ink-3);font-size:12px}
+.row{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-top:1px solid var(--line);font-size:14px}
+.row:first-of-type{border-top:0}
+.row .t{flex:1;min-width:0}
+.row .t a{color:var(--ink);font-weight:500}
+.row .m{color:var(--ink-3);font-size:12px;white-space:nowrap}
+.row input[type=checkbox]{margin-top:4px;accent-color:var(--navy);width:16px;height:16px}
+.row.done .t{text-decoration:line-through;color:var(--ink-3)}
+.row .m.over{color:var(--red);font-weight:600}
+.empty{color:var(--ink-3);font-size:13.5px;padding:8px 0}
+.bar{height:8px;background:var(--hover);border-radius:99px;overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--navy-3),var(--gold));border-radius:99px}
+table.tb{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;font-size:14px}
+table.tb th,table.tb td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.tb th{font:700 11.5px var(--font-head);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);background:var(--bg)}
+table.tb tr:hover td{background:var(--hover)}
+table.tb a{color:var(--ink);font-weight:600}
+.tagcloud{display:flex;flex-wrap:wrap;gap:8px}
+.tagcloud a{background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:13.5px;font-weight:500}
+.tagcloud a b{color:var(--ink-3);font-weight:500;margin-left:5px}
+.notice{background:var(--gold-soft);border:1px solid #f9b50866;border-radius:10px;padding:10px 14px;font-size:13.5px;margin-bottom:16px;display:flex;gap:10px;align-items:flex-start}
+.notice svg{flex:none;width:18px;height:18px;margin-top:2px}
+
+/* ---------- Editor ---------- */
+.ed{display:flex;flex-direction:column;height:100%;min-height:0}
+.ed .tbar{display:flex;align-items:center;gap:8px;padding:10px clamp(12px,2vw,24px);border-bottom:1px solid var(--line);background:var(--panel);flex-wrap:wrap}
+.ed .ttl{flex:1 1 220px;border:0;background:transparent;font:700 clamp(1.1rem,1.8vw,1.45rem) var(--font-head);padding:4px 0;min-width:0;outline:0}
+.ed .ttl::placeholder{color:var(--ink-3)}
+.ed .panes{flex:1;display:grid;min-height:0;grid-template-columns:1fr}
+.ed .panes.split{grid-template-columns:1fr 1fr}
+.ed textarea{border:0;resize:none;outline:0;background:var(--panel);padding:20px clamp(14px,2.5vw,32px);font:14.5px/1.7 var(--mono);color:var(--ink);min-height:0;border-right:1px solid var(--line);tab-size:2}
+.ed .prev{overflow:auto;padding:20px clamp(14px,2.5vw,32px) 80px;background:var(--panel)}
+.ed .panes.m-edit .prev{display:none}
+.ed .panes.m-prev textarea{display:none}
+.md{max-width:760px;font-size:15.5px}
+.md h1{font-size:1.6rem;margin:.6em 0 .4em}.md h2{font-size:1.3rem;margin:1.2em 0 .4em;padding-bottom:4px;border-bottom:1px solid var(--line)}.md h3{font-size:1.1rem;margin:1em 0 .3em}.md h4{font-size:1rem}
+.md p{margin:0 0 .9em}
+.md ul,.md ol{padding-left:1.4em;margin:0 0 .9em}
+.md li{margin:.15em 0}
+.md li.task{list-style:none;margin-left:-1.3em;display:flex;gap:8px;align-items:flex-start}
+.md li.task input{margin-top:5px;accent-color:var(--navy);width:16px;height:16px;flex:none}
+.md li.task.done{color:var(--ink-3);text-decoration:line-through}
+.md blockquote{margin:0 0 .9em;padding:6px 16px;border-left:4px solid var(--gold);background:var(--bg);border-radius:0 8px 8px 0;color:var(--ink-2)}
+.md code{font:13px var(--mono);background:var(--hover);padding:2px 5px;border-radius:5px}
+.md pre{background:#0b0d1f;color:#e9ecff;padding:14px 16px;border-radius:10px;overflow:auto;font:13px/1.55 var(--mono);margin:0 0 1em}
+.md pre code{background:transparent;padding:0;color:inherit}
+.md table{border-collapse:collapse;margin:0 0 1em;width:100%;font-size:14px}
+.md th,.md td{border:1px solid var(--line);padding:6px 10px;text-align:left}
+.md th{background:var(--bg)}
+.md hr{border:0;border-top:1px solid var(--line);margin:1.4em 0}
+.md img{max-width:100%;border-radius:8px}
+.md mark{background:var(--gold-soft);padding:0 3px}
+.md a.wl{color:var(--navy-3);font-weight:600;border-bottom:1px dotted;cursor:pointer}
+:root[data-theme="dark"] .md a.wl{color:#9ea6ff}
+.md a.wl.new{color:var(--ink-3);border-bottom-style:dashed}
+.md a.tag{display:inline-block;background:var(--hover);color:var(--ink-2);border-radius:99px;padding:0 8px;font-size:.88em;font-weight:500;cursor:pointer}
+.md .fm{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin:0 0 16px;font-size:12.5px;color:var(--ink-2);display:grid;grid-template-columns:max-content 1fr;gap:2px 14px}
+.md .fm b{font-weight:600;color:var(--ink-3)}
+
+/* ---------- Right panel ---------- */
+aside.rp{background:var(--panel);border-left:1px solid var(--line);overflow:auto;padding:14px 14px 40px;font-size:13.5px}
+.rp h4{font:700 11px var(--font-head);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin:14px 0 8px}
+.rp h4:first-child{margin-top:0}
+.rp .f{display:grid;grid-template-columns:92px 1fr;align-items:center;gap:6px 8px;margin-bottom:6px}
+.rp .f label{color:var(--ink-2);font-size:12.5px}
+.rp .f input,.rp .f select{border:1px solid var(--line);background:var(--bg);border-radius:7px;padding:5px 8px;font-size:13px;width:100%;min-width:0}
+.rp .f input[type=range]{padding:0}
+.rp ul{list-style:none;margin:0;padding:0}
+.rp li{padding:4px 0}
+.rp li a{color:var(--ink);font-weight:500;cursor:pointer}
+.rp li small{display:block;color:var(--ink-3);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rp .ol a{display:block;padding:2px 0;color:var(--ink-2);cursor:pointer}
+.rp .ol a.l2{padding-left:12px}.rp .ol a.l3{padding-left:24px;font-size:12.5px}
+
+/* ---------- Graph ---------- */
+.gwrap{position:relative;height:calc(100% - 0px);min-height:420px}
+canvas#graph{width:100%;height:100%;display:block;border-radius:var(--r);background:var(--panel);border:1px solid var(--line);cursor:grab}
+.legend{position:absolute;left:12px;bottom:12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:12px;display:flex;flex-wrap:wrap;gap:6px 12px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+
+/* ---------- Palette / modal ---------- */
+.ov{position:fixed;inset:0;background:#03054866;backdrop-filter:blur(2px);display:none;align-items:flex-start;justify-content:center;padding:10vh 16px;z-index:50}
+.ov.show{display:flex}
+.pal{width:min(680px,100%);background:var(--panel);border-radius:14px;box-shadow:0 24px 80px #03054866;overflow:hidden;border:1px solid var(--line)}
+.pal input{width:100%;border:0;border-bottom:1px solid var(--line);padding:16px 18px;font-size:16px;outline:0;background:transparent}
+.pal .res{max-height:52vh;overflow:auto;padding:6px}
+.pal .it{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;cursor:pointer}
+.pal .it.on,.pal .it:hover{background:var(--hover)}
+.pal .it .k{font:700 10px var(--font-head);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);width:62px;flex:none}
+.pal .it b{font-weight:600;font-size:14px}
+.pal .it small{color:var(--ink-3);font-size:12px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.modal{width:min(820px,100%);background:var(--panel);border-radius:14px;box-shadow:0 24px 80px #03054866;border:1px solid var(--line);padding:20px 22px;max-height:84vh;overflow:auto}
+.modal h2{font-size:1.2rem;display:flex;align-items:center;gap:10px}
+.modal h2 .x{margin-left:auto}
+.modal h2 svg,.view h1 svg{width:20px;height:20px;flex:none}
+.modal textarea{width:100%;min-height:260px;border:1px solid var(--line);border-radius:10px;padding:12px;font:13px/1.5 var(--mono);background:var(--bg);resize:vertical}
+.modal .opts{display:flex;flex-wrap:wrap;gap:8px 16px;margin:10px 0;font-size:13.5px}
+.modal .opts label{display:inline-flex;align-items:center;gap:6px}
+.modal select{border:1px solid var(--line);border-radius:8px;padding:7px 10px;background:var(--bg)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--navy);color:#fff;padding:10px 16px;border-radius:10px;font-size:13.5px;opacity:0;transition:.25s;z-index:60;pointer-events:none;box-shadow:var(--shadow)}
+.toast.show{opacity:1;transform:translateX(-50%)}
+.hint{color:var(--ink-3);font-size:12.5px}
+.chip{display:inline-flex;align-items:center;gap:5px;background:var(--hover);border-radius:99px;padding:2px 9px;font-size:12px;font-weight:500;color:var(--ink-2)}
+
+/* ---------- Responsive ---------- */
+@media (max-width:1100px){main.body,main.body.no-rp{grid-template-columns:var(--sb-w) 1fr}aside.rp{position:fixed;right:0;top:var(--hdr-h);bottom:0;width:min(320px,90vw);transform:translateX(100%);transition:.2s;z-index:30;box-shadow:-10px 0 30px #03054822}aside.rp.open{transform:none}}
+@media (max-width:860px){
+  #burger{display:inline-flex}
+  main.body,main.body.no-rp{grid-template-columns:1fr}
+  header.top{gap:6px;padding:0 10px}
+  header.top .brand span{display:none}
+  .ibtn{padding:0 9px}
+  .ibtn kbd,#btnTheme{display:none}
+  aside.sb{position:fixed;left:0;top:var(--hdr-h);bottom:0;width:min(300px,86vw);transform:translateX(-100%);transition:.2s;z-index:30;box-shadow:10px 0 30px #03054822}
+  aside.sb.open{transform:none}
+  header.top .brand small{display:none}
+  .ibtn .lbl{display:none}
+  .ed .panes.split{grid-template-columns:1fr}
+  .ed .panes.split textarea{display:none}
+}
+@media print{header.top,aside,.toolbar,.tbar{display:none!important}body{overflow:auto}.ed textarea{display:none}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <button id="burger" class="ibtn" aria-label="Mở menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    <a class="brand" href="/demo/" title="Về trang Demo ABM"><img src="/brand/icon-512.png" alt="ABM"><span>Não bộ thứ hai<small>ABM Second Brain · Bản mẫu</small></span></a>
+    <span class="spacer"></span>
+    <button class="ibtn" id="btnSearch" title="Tìm kiếm & lệnh nhanh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span class="lbl">Tìm / Lệnh</span><kbd>Ctrl K</kbd></button>
+    <button class="ibtn" id="btnCapture" title="Ghi nhanh vào Hộp thu nhận"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="lbl">Ghi nhanh</span></button>
+    <button class="ibtn gold" id="btnNew"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg><span class="lbl">Ghi chú mới</span></button>
+    <button class="ibtn" id="btnTheme" title="Đổi giao diện sáng/tối"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg></button>
+    <button class="ibtn" id="btnRp" title="Bảng thuộc tính & liên kết"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/></svg></button>
+  </header>
+  <main class="body">
+    <aside class="sb" id="sb">
+      <nav id="nav"></nav>
+      <div class="list">
+        <div class="hd"><input id="filter" placeholder="Lọc ghi chú…" aria-label="Lọc ghi chú"><button class="btn sm" id="sortBtn" title="Sắp xếp">Mới nhất</button></div>
+        <div id="noteList"></div>
+      </div>
+    </aside>
+    <section class="main" id="main"></section>
+    <aside class="rp" id="rp"></aside>
+  </main>
+</div>
+
+<div class="ov" id="palOv"><div class="pal" role="dialog" aria-label="Tìm kiếm và lệnh"><input id="palIn" placeholder="Tìm ghi chú, hoặc gõ > để chạy lệnh…" autocomplete="off"><div class="res" id="palRes"></div></div></div>
+<div class="ov" id="modOv"><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast"></div>
+<input type="file" id="fileMd" multiple accept=".md,.markdown,.txt,text/markdown" hidden>
+<input type="file" id="fileDir" webkitdirectory directory multiple hidden>
+<input type="file" id="fileJson" accept=".json,application/json" hidden>
+
+<script>
+/* =====================================================================
+   ABM Second Brain — Não bộ thứ hai cho Lãnh đạo (bản mẫu, 1 file)
+   Lưu trữ: IndexedDB trên trình duyệt. Không gửi dữ liệu lên máy chủ.
+   ===================================================================== */
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const todayISO = (d = new Date()) => { const z = n => String(n).padStart(2, '0'); return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`; };
+const fmtDate = iso => { if (!iso) return ''; const [y,m,d] = iso.split('-'); return d && m ? `${d}/${m}/${y}` : iso; };
+const rel = ts => { const s = (Date.now() - ts) / 1000; if (s < 60) return 'vừa xong'; if (s < 3600) return Math.floor(s/60) + ' phút trước'; if (s < 86400) return Math.floor(s/3600) + ' giờ trước'; if (s < 86400*7) return Math.floor(s/86400) + ' ngày trước'; return fmtDate(todayISO(new Date(ts))); };
+const daysDiff = iso => Math.round((new Date(iso + 'T00:00:00') - new Date(todayISO() + 'T00:00:00')) / 86400000);
+const toast = (m, t = 2200) => { const el = $('#toast'); el.textContent = m; el.classList.add('show'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), t); };
+
+const TYPES = {
+  'ghi-chu':   { label: 'Ghi chú',        color: '#1a1f7a', icon: 'note' },
+  'thu-nhan':  { label: 'Thu nhận',       color: '#8a8fa8', icon: 'inbox' },
+  'nhat-ky':   { label: 'Nhật ký',        color: '#16a34a', icon: 'cal' },
+  'quyet-dinh':{ label: 'Quyết định',     color: '#d42a2a', icon: 'gavel' },
+  'hop':       { label: 'Biên bản họp',   color: '#0e7490', icon: 'users' },
+  'muc-tieu':  { label: 'Mục tiêu',       color: '#f9b508', icon: 'target' },
+  'sop':       { label: 'SOP / Playbook', color: '#7c3aed', icon: 'book' },
+  'du-an':     { label: 'Dự án',          color: '#ea580c', icon: 'flag' },
+};
+const LEVELS = { xanh: 'Xanh — chia sẻ được', vang: 'Vàng — nội bộ', do: 'Đỏ — mật, không đưa vào A.I' };
+const STATUS = { 'moi': 'Mới', 'dang-lam': 'Đang làm', 'cho-duyet': 'Chờ duyệt', 'da-chot': 'Đã chốt', 'hoan-thanh': 'Hoàn thành', 'tam-dung': 'Tạm dừng', 'luu-tru': 'Lưu trữ' };
+
+const ICONS = {
+  home:'<path d="M3 11 12 3l9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/>',
+  inbox:'<path d="M3 13h5l2 3h4l2-3h5"/><path d="M5 4h14l2 9v7H3v-7Z"/>',
+  cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  note:'<path d="M6 3h9l5 5v13H6Z"/><path d="M14 3v6h6M9 13h6M9 17h6"/>',
+  check:'<rect x="3" y="3" width="18" height="18" rx="3"/><path d="m8 12 3 3 5-6"/>',
+  gavel:'<path d="m14 13-7.5 7.5a1.5 1.5 0 0 1-2-2L12 11"/><path d="m13 4 7 7-3 3-7-7Z"/><path d="M3 21h8"/>',
+  users:'<circle cx="9" cy="8" r="3.5"/><path d="M2 20a7 7 0 0 1 14 0"/><circle cx="17" cy="9" r="2.5"/><path d="M22 19a5 5 0 0 0-6-4.9"/>',
+  target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/>',
+  book:'<path d="M4 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4Z"/><path d="M20 4h-7a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h8Z"/>',
+  flag:'<path d="M5 21V4"/><path d="M5 4h13l-3 4 3 4H5"/>',
+  graph:'<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="7" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M8.3 7 15.6 7.6M7.5 8l3.3 8M16.7 9.2l-3.4 6.6"/>',
+  tag:'<path d="M3 12V4h8l10 10-8 8Z"/><circle cx="7.5" cy="8.5" r="1.5"/>',
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/>',
+  ai:'<path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/><circle cx="12" cy="12" r="4"/>',
+  copy:'<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
+  dl:'<path d="M12 3v12M7 10l5 5 5-5M4 21h16"/>',
+  trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+  tpl:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>',
+  x:'<path d="M6 6l12 12M18 6 6 18"/>',
+};
+const ic = n => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n] || ICONS.note}</svg>`;
+
+/* ---------------- Storage (IndexedDB, fallback localStorage) ---------------- */
+const DB = (() => {
+  const NAME = 'abm-second-brain', STORE = 'notes';
+  let db = null, mem = false;
+  const open = () => new Promise(res => {
+    if (!('indexedDB' in window)) { mem = true; return res(); }
+    const rq = indexedDB.open(NAME, 1);
+    rq.onupgradeneeded = () => rq.result.createObjectStore(STORE, { keyPath: 'id' });
+    rq.onsuccess = () => { db = rq.result; res(); };
+    rq.onerror = () => { mem = true; res(); };
+  });
+  const tx = (mode, fn) => new Promise((res, rej) => { const t = db.transaction(STORE, mode); const r = fn(t.objectStore(STORE)); t.oncomplete = () => res(r && r.result); t.onerror = () => rej(t.error); });
+  const lsKey = 'abm-sb-notes';
+  return {
+    open,
+    async all() { if (mem) { try { return JSON.parse(localStorage.getItem(lsKey) || '[]'); } catch { return []; } } return tx('readonly', s => s.getAll()); },
+    async put(n) { if (mem) { const a = await this.all(); const i = a.findIndex(x => x.id === n.id); i < 0 ? a.push(n) : a[i] = n; localStorage.setItem(lsKey, JSON.stringify(a)); return; } return tx('readwrite', s => s.put(n)); },
+    async del(id) { if (mem) { const a = (await this.all()).filter(x => x.id !== id); localStorage.setItem(lsKey, JSON.stringify(a)); return; } return tx('readwrite', s => s.delete(id)); },
+    async clear() { if (mem) { localStorage.removeItem(lsKey); return; } return tx('readwrite', s => s.clear()); },
+  };
+})();
+
+/* ---------------- State ---------------- */
+const S = { notes: new Map(), cur: null, view: 'home', mode: localStorage.getItem('abm-sb-mode') || 'split', sort: 'updated', filter: '', tagFilter: null, listType: null };
+
+const byTitle = new Map();
+function reindex() { byTitle.clear(); for (const n of S.notes.values()) byTitle.set(n.title.trim().toLowerCase(), n.id); }
+const findByTitle = t => { const k = String(t).split('/').pop().trim().toLowerCase(); return byTitle.has(k) ? S.notes.get(byTitle.get(k)) : null; };
+
+/* ---------------- Frontmatter & parsing ---------------- */
+function parseFm(body) {
+  const b = body || '';
+  if (!b.startsWith('---\n')) return { fm: {}, content: b, keys: [] };
+  const end = b.indexOf('\n---', 4);
+  if (end < 0) return { fm: {}, content: b, keys: [] };
+  const raw = b.slice(4, end), content = b.slice(end + 4).replace(/^\r?\n/, '');
+  const fm = {}, keys = [];
+  raw.split('\n').forEach(l => { const m = l.match(/^([\w-]+):\s*(.*)$/); if (m) { fm[m[1]] = m[2].trim().replace(/^["']|["']$/g, ''); keys.push(m[1]); } });
+  return { fm, content, keys };
+}
+function withFm(body, patch) {
+  const { fm, content, keys } = parseFm(body);
+  const out = { ...fm }; const order = [...keys];
+  for (const [k, v] of Object.entries(patch)) { if (v === '' || v == null) { delete out[k]; } else { out[k] = v; if (!order.includes(k)) order.push(k); } }
+  const ks = order.filter(k => k in out);
+  if (!ks.length) return content;
+  return '---\n' + ks.map(k => `${k}: ${out[k]}`).join('\n') + '\n---\n' + content;
+}
+const noteFm = n => parseFm(n.body).fm;
+const noteType = n => { const t = noteFm(n).loai; return TYPES[t] ? t : 'ghi-chu'; };
+const noteLevel = n => { const l = noteFm(n).muc_do; return LEVELS[l] ? l : 'xanh'; };
+const stripCode = s => s.replace(/```[\s\S]*?```/g, '').replace(/`[^`]*`/g, '');
+const TAG_RE = /(^|[\s(])#(?![0-9]+(?=[\s.,;)]|$))([\p{L}\p{N}_\/-]+)/gu;
+function noteTags(n) {
+  const { fm, content } = parseFm(n.body); const set = new Set();
+  (fm.the || '').split(/[,\s]+/).filter(Boolean).forEach(t => set.add(t.replace(/^#/, '')));
+  for (const m of stripCode(content).matchAll(TAG_RE)) set.add(m[2]);
+  return [...set];
+}
+function noteLinks(n) { const s = new Set(); for (const m of stripCode(n.body).matchAll(/\[\[([^\]|#]+)/g)) s.add(m[1].trim()); return [...s]; }
+function backlinks(id) { const me = S.notes.get(id); if (!me) return []; const out = []; for (const n of S.notes.values()) { if (n.id === id) continue; if (noteLinks(n).some(t => findByTitle(t)?.id === id)) out.push(n); } return out; }
+const TASK_RE = /^(\s*)[-*+]\s+\[([ xX])\]\s+(.*)$/;
+function allTasks() {
+  const out = [];
+  for (const n of S.notes.values()) {
+    const lines = n.body.split('\n'); let inCode = false;
+    lines.forEach((l, i) => {
+      if (/^```/.test(l)) { inCode = !inCode; return; } if (inCode) return;
+      const m = l.match(TASK_RE); if (!m) return;
+      let text = m[3]; const done = m[2] !== ' ';
+      const due = (text.match(/📅\s*(\d{4}-\d{2}-\d{2})/) || text.match(/\(hạn:?\s*(\d{4}-\d{2}-\d{2})\)/))?.[1] || '';
+      const owner = text.match(/@([\p{L}\p{N}_.-]+)/u)?.[1] || '';
+      text = text.replace(/📅\s*\d{4}-\d{2}-\d{2}/, '').replace(/\(hạn:?\s*\d{4}-\d{2}-\d{2}\)/, '').trim();
+      out.push({ noteId: n.id, note: n, line: i, text, done, due, owner });
+    });
+  }
+  return out;
+}
+async function toggleTask(noteId, line) {
+  const n = S.notes.get(noteId); if (!n) return;
+  const lines = n.body.split('\n'); const l = lines[line]; if (!l) return;
+  lines[line] = /\[ \]/.test(l) ? l.replace('[ ]', '[x]') : l.replace(/\[[xX]\]/, '[ ]');
+  n.body = lines.join('\n'); n.updated = Date.now(); await DB.put(n); render();
+}
+const excerpt = (n, len = 90) => parseFm(n.body).content.replace(/^#+\s.*$/mg, '').replace(/[*_`>#\[\]]/g, '').replace(/\s+/g, ' ').trim().slice(0, len);
+
+/* ---------------- Markdown renderer ---------------- */
+function inline(s) {
+  s = esc(s);
+  s = s.replace(/`([^`]+)`/g, (m, c) => `<code>${c}</code>`);
+  s = s.replace(/\[\[([^\]|#]+)(?:#[^\]|]*)?(?:\|([^\]]+))?\]\]/g, (m, t, a) => `<a class="wl${findByTitle(t) ? '' : ' new'}" data-wl="${t.trim()}">${a || t}</a>`);
+  s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, '<img alt="$1" src="$2" loading="lazy">');
+  s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/(^|[^*\w])\*([^*\n]+)\*/g, '$1<em>$2</em>');
+  s = s.replace(/~~([^~]+)~~/g, '<del>$1</del>');
+  s = s.replace(/==([^=]+)==/g, '<mark>$1</mark>');
+  s = s.replace(TAG_RE, (m, p, t) => `${p}<a class="tag" data-tag="${t}">#${t}</a>`);
+  s = s.replace(/(^|\s)(https?:\/\/[^\s<]+)/g, '$1<a href="$2" target="_blank" rel="noopener">$2</a>');
+  return s;
+}
+function renderMd(body, opts = {}) {
+  const { fm, content, keys } = parseFm(body);
+  const lines = content.split('\n'); const out = []; let i = 0;
+  const offset = body.length - content.length; const baseLine = body.slice(0, offset).split('\n').length - 1; // line index offset for tasks
+  if (keys.length && opts.showFm !== false) {
+    out.push('<div class="fm">' + keys.map(k => `<b>${esc(k)}</b><span>${inline(fm[k])}</span>`).join('') + '</div>');
+  }
+  const para = []; const flushP = () => { if (para.length) { out.push('<p>' + inline(para.join(' ')) + '</p>'); para.length = 0; } };
+  while (i < lines.length) {
+    const l = lines[i];
+    if (/^```/.test(l)) { flushP(); const buf = []; i++; while (i < lines.length && !/^```/.test(lines[i])) buf.push(lines[i++]); i++; out.push('<pre><code>' + esc(buf.join('\n')) + '</code></pre>'); continue; }
+    let m;
+    if ((m = l.match(/^(#{1,6})\s+(.*)$/))) { flushP(); const lv = m[1].length; out.push(`<h${lv} id="h-${i}">${inline(m[2])}</h${lv}>`); i++; continue; }
+    if (/^\s*(-{3,}|\*{3,}|_{3,})\s*$/.test(l)) { flushP(); out.push('<hr>'); i++; continue; }
+    if (/^>\s?/.test(l)) { flushP(); const buf = []; while (i < lines.length && /^>\s?/.test(lines[i])) buf.push(lines[i++].replace(/^>\s?/, '')); out.push('<blockquote>' + renderMd(buf.join('\n'), { showFm: false }) + '</blockquote>'); continue; }
+    if (/^\s*\|/.test(l) && i + 1 < lines.length && /^\s*\|?\s*:?-{2,}/.test(lines[i + 1])) {
+      flushP(); const rows = []; while (i < lines.length && /^\s*\|/.test(lines[i])) rows.push(lines[i++]);
+      const cells = r => r.trim().replace(/^\||\|$/g, '').split('|').map(c => inline(c.trim()));
+      const head = cells(rows[0]); const bodyRows = rows.slice(2).map(cells);
+      out.push('<table><thead><tr>' + head.map(c => `<th>${c}</th>`).join('') + '</tr></thead><tbody>' + bodyRows.map(r => '<tr>' + r.map(c => `<td>${c}</td>`).join('') + '</tr>').join('') + '</tbody></table>');
+      continue;
+    }
+    if ((m = l.match(/^(\s*)([-*+]|\d+[.)])\s+(.*)$/))) {
+      flushP(); const items = [];
+      while (i < lines.length && (m = lines[i].match(/^(\s*)([-*+]|\d+[.)])\s+(.*)$/))) { items.push({ indent: m[1].replace(/\t/g, '  ').length, type: /\d/.test(m[2]) ? 'ol' : 'ul', text: m[3], line: i }); i++; }
+      let html = ''; const stack = [];
+      for (const it of items) {
+        while (stack.length && it.indent < stack[stack.length - 1].indent) html += '</li></' + stack.pop().type + '>';
+        if (!stack.length || it.indent > stack[stack.length - 1].indent) { stack.push({ indent: it.indent, type: it.type }); html += '<' + it.type + '>'; } else html += '</li>';
+        const tm = it.text.match(/^\[([ xX])\]\s+(.*)$/);
+        if (tm) { const done = tm[1] !== ' '; html += `<li class="task${done ? ' done' : ''}"><input type="checkbox" data-line="${it.line + baseLine}"${done ? ' checked' : ''}><span>${inline(tm[2])}</span>`; }
+        else html += '<li>' + inline(it.text);
+      }
+      while (stack.length) html += '</li></' + stack.pop().type + '>';
+      out.push(html); continue;
+    }
+    if (!l.trim()) { flushP(); i++; continue; }
+    para.push(l); i++;
+  }
+  flushP();
+  return out.join('\n');
+}
+
+/* ---------------- Templates ---------------- */
+const TEMPLATES = {
+  'quyet-dinh': { label: 'Quyết định', title: () => 'Quyết định — ', body: () => `---
+loai: quyet-dinh
+trang_thai: cho-duyet
+muc_do: vang
+nguoi_quyet: Sếp
+ngay: ${todayISO()}
+ra_soat: ${todayISO(new Date(Date.now() + 30*86400000))}
+---
+## Bối cảnh
+Vì sao phải quyết định lúc này? Dữ kiện nào đã có?
+
+## Phương án đã cân nhắc
+| Phương án | Ưu | Nhược | Chi phí / Rủi ro |
+|---|---|---|---|
+| A | | | |
+| B | | | |
+
+## Quyết định
+**Chọn:** …
+**Lý do:** …
+
+## Giả định & Điều kiện đảo ngược
+- Quyết định này đúng nếu: …
+- Xem lại ngay khi: …
+
+## Việc tiếp theo
+- [ ] … @Tên 📅 ${todayISO(new Date(Date.now() + 7*86400000))}
+
+Liên quan: [[Mục tiêu]] · #quyet-dinh` },
+  'hop': { label: 'Biên bản họp', title: () => `Họp ${fmtDate(todayISO())} — `, body: () => `---
+loai: hop
+ngay: ${todayISO()}
+muc_do: vang
+thanh_phan: 
+---
+## Mục tiêu cuộc họp
+…
+
+## Nội dung chính
+- 
+
+## Quyết định đã chốt
+- 
+
+## Việc cần làm (ai · làm gì · hạn)
+- [ ] … @Tên 📅 ${todayISO(new Date(Date.now() + 7*86400000))}
+
+## Lần sau
+- Ngày: … · Chủ đề: …
+
+#hop` },
+  'muc-tieu': { label: 'Mục tiêu (OKR)', title: () => 'Mục tiêu — ', body: () => `---
+loai: muc-tieu
+trang_thai: dang-lam
+chu_so_huu: Sếp
+tien_do: 0
+ngay: ${todayISO()}
+han: ${todayISO(new Date(Date.now() + 90*86400000))}
+---
+## Mục tiêu (Objective)
+Một câu, truyền cảm hứng, đo được bằng kết quả bên dưới.
+
+## Kết quả then chốt (Key Results)
+| KR | Hiện tại | Mục tiêu | Chủ trì |
+|---|---|---|---|
+| KR1 | | | |
+| KR2 | | | |
+| KR3 | | | |
+
+## Sáng kiến / Việc cần làm
+- [ ] … @Tên 📅 ${todayISO(new Date(Date.now() + 14*86400000))}
+
+## Nhật ký tiến độ
+- ${fmtDate(todayISO())}: khởi tạo.
+
+#muc-tieu` },
+  'sop': { label: 'SOP / Playbook', title: () => 'SOP — ', body: () => `---
+loai: sop
+trang_thai: moi
+chu_so_huu: 
+phien_ban: 1.0
+muc_do: vang
+---
+## Mục đích & Phạm vi
+Quy trình này dùng khi … Không dùng khi …
+
+## Vai trò
+| Vai | Người / Vai số | Trách nhiệm |
+|---|---|---|
+| Thực hiện | | |
+| Kiểm tra | | |
+| Duyệt | | |
+
+## Các bước
+1. **Bước 1** — … (đầu vào → đầu ra)
+2. **Bước 2** — …
+3. **Bước 3** — …
+
+## Tiêu chí đạt
+- [ ] …
+
+## Lỗi thường gặp & cách xử lý
+- …
+
+## Ranh giới Đỏ
+- KHÔNG … — vì …
+
+#sop` },
+  'nhat-ky': { label: 'Nhật ký ngày', title: () => `Nhật ký ${todayISO()}`, body: () => `---
+loai: nhat-ky
+ngay: ${todayISO()}
+---
+## 3 việc quan trọng nhất hôm nay
+- [ ] 
+- [ ] 
+- [ ] 
+
+## Ghi nhanh
+- 
+
+## Quyết định / Bài học
+- 
+
+## Tối nay nhìn lại
+- Đã xong: 
+- Chưa xong và vì sao: 
+
+#nhat-ky` },
+  'ra-soat-tuan': { label: 'Rà soát tuần', title: () => `Rà soát tuần — ${fmtDate(todayISO())}`, body: () => `---
+loai: nhat-ky
+ngay: ${todayISO()}
+the: ra-soat-tuan
+---
+## Tuần qua
+- Thắng lợi: 
+- Chưa đạt: 
+- Số liệu then chốt: 
+
+## Mục tiêu đang chạy
+(Mở Tổng quan → Mục tiêu để xem tiến độ)
+
+## Quyết định cần rà soát
+(Mở Sổ quyết định → cột Rà soát)
+
+## Tuần tới — 3 ưu tiên
+- [ ] 
+- [ ] 
+- [ ] 
+
+## Việc ủy quyền / giao Nhân sự số
+- 
+
+#ra-soat-tuan` },
+  'du-an': { label: 'Dự án', title: () => 'Dự án — ', body: () => `---
+loai: du-an
+trang_thai: dang-lam
+chu_so_huu: 
+tien_do: 0
+ngay: ${todayISO()}
+muc_do: vang
+---
+## Bài toán & Giá trị
+- Bài toán: 
+- Giá trị tạo ra: 
+- Thước đo thành công: 
+
+## Phạm vi
+- Trong: 
+- Ngoài: 
+
+## Mốc & Việc
+- [ ] Mốc 1 — @Tên 📅 ${todayISO(new Date(Date.now() + 14*86400000))}
+- [ ] Mốc 2 — @Tên 📅 ${todayISO(new Date(Date.now() + 30*86400000))}
+
+## Rủi ro & Kiểm soát
+| Rủi ro | Khả năng | Tác động | Biện pháp |
+|---|---|---|---|
+
+## Liên quan
+- Quyết định: 
+- SOP: 
+
+#du-an` },
+  '1-1': { label: 'Họp 1:1', title: () => `1:1 — `, body: () => `---
+loai: hop
+ngay: ${todayISO()}
+the: 1-1
+muc_do: do
+---
+## Người
+Tên · Vai trò
+
+## Họ đang gặp gì
+- 
+
+## Phản hồi hai chiều
+- Tôi ghi nhận: 
+- Cần cải thiện: 
+
+## Cam kết
+- [ ] … @Tên 📅 ${todayISO(new Date(Date.now() + 14*86400000))}
+
+#1-1` },
+};
+
+/* ---------------- CRUD ---------------- */
+async function createNote({ title = 'Ghi chú mới', body = '', open = true, path = '' } = {}) {
+  const n = { id: uid(), title, body, path, created: Date.now(), updated: Date.now() };
+  S.notes.set(n.id, n); reindex(); await DB.put(n);
+  if (open) location.hash = '#/note/' + n.id;
+  return n;
+}
+let saveT = null;
+function scheduleSave(n) { clearTimeout(saveT); saveT = setTimeout(() => DB.put(n), 350); }
+async function deleteNote(id) {
+  const n = S.notes.get(id); if (!n) return;
+  if (!confirm(`Xóa ghi chú "${n.title}"? Không thể hoàn tác.`)) return;
+  S.notes.delete(id); reindex(); await DB.del(id); toast('Đã xóa'); location.hash = '#/view/notes';
+}
+function openByTitle(t) { const n = findByTitle(t); if (n) location.hash = '#/note/' + n.id; else createNote({ title: t.split('/').pop().trim() }); }
+
+/* ---------------- Routing ---------------- */
+function route() {
+  const h = location.hash.replace(/^#\/?/, '');
+  const [kind, ...rest] = h.split('/');
+  if (kind === 'note' && S.notes.has(rest[0])) { S.cur = rest[0]; S.view = 'note'; }
+  else if (kind === 'view') { S.view = rest[0] || 'home'; S.cur = null; S.listType = rest[1] || null; }
+  else { S.view = 'home'; S.cur = null; }
+  if (kind !== 'tag') S.tagFilter = null;
+  if (kind === 'tag') { S.view = 'tag'; S.tagFilter = decodeURIComponent(rest.join('/')); S.cur = null; }
+  $('#sb').classList.remove('open'); $('#rp').classList.remove('open');
+  render();
+}
+window.addEventListener('hashchange', route);
+
+/* ---------------- Render: nav + list ---------------- */
+function render() { renderNav(); renderList(); renderMain(); renderRp(); }
+function renderNav() {
+  const tasks = allTasks(); const open = tasks.filter(t => !t.done);
+  const cnt = t => [...S.notes.values()].filter(n => noteType(n) === t).length;
+  const items = [
+    { g: 'Lãnh đạo' },
+    { v: 'home', l: 'Tổng quan', i: 'home' },
+    { v: 'inbox', l: 'Hộp thu nhận', i: 'inbox', n: cnt('thu-nhan') },
+    { v: 'today', l: 'Hôm nay', i: 'cal' },
+    { v: 'tasks', l: 'Việc cần làm', i: 'check', n: open.length },
+    { v: 'list/quyet-dinh', l: 'Sổ quyết định', i: 'gavel', n: cnt('quyet-dinh') },
+    { v: 'list/muc-tieu', l: 'Mục tiêu', i: 'target', n: cnt('muc-tieu') },
+    { v: 'list/hop', l: 'Biên bản họp', i: 'users', n: cnt('hop') },
+    { v: 'list/du-an', l: 'Dự án', i: 'flag', n: cnt('du-an') },
+    { v: 'list/sop', l: 'SOP / Playbook', i: 'book', n: cnt('sop') },
+    { g: 'Tri thức' },
+    { v: 'notes', l: 'Tất cả ghi chú', i: 'note', n: S.notes.size },
+    { v: 'graph', l: 'Sơ đồ liên kết', i: 'graph' },
+    { v: 'tags', l: 'Thẻ', i: 'tag' },
+    { v: 'data', l: 'Dữ liệu & Cài đặt', i: 'gear' },
+  ];
+  const cur = S.view + (S.listType ? '/' + S.listType : '');
+  $('#nav').innerHTML = items.map(it => it.g ? `<div class="grp">${it.g}</div>` : `<a href="#/view/${it.v}" class="${cur === it.v ? 'on' : ''}">${ic(it.i)}<span>${it.l}</span>${it.n != null ? `<span class="n">${it.n}</span>` : ''}</a>`).join('');
+}
+function sortedNotes(list) { return [...list].sort((a, b) => S.sort === 'title' ? a.title.localeCompare(b.title, 'vi') : b.updated - a.updated); }
+function renderList() {
+  const q = S.filter.trim().toLowerCase();
+  let list = [...S.notes.values()];
+  if (q) list = list.filter(n => n.title.toLowerCase().includes(q) || n.body.toLowerCase().includes(q));
+  list = sortedNotes(list).slice(0, 300);
+  $('#noteList').innerHTML = list.map(n => { const t = noteType(n); return `<a class="ni ${n.id === S.cur ? 'on' : ''}" href="#/note/${n.id}"><b>${esc(n.title) || '(không tiêu đề)'}</b><small><i class="dot lv-${noteLevel(n)}" title="${LEVELS[noteLevel(n)]}"></i>${TYPES[t].label} · ${rel(n.updated)}</small></a>`; }).join('') || '<div class="empty">Chưa có ghi chú.</div>';
+  $('#sortBtn').textContent = S.sort === 'title' ? 'A→Z' : 'Mới nhất';
+}
+
+/* ---------------- Render: main views ---------------- */
+function renderMain() {
+  const m = $('#main'); $('.body').classList.toggle('no-rp', S.view !== 'note');
+  if (S.view === 'note') return renderEditor(m);
+  const V = { home: viewHome, inbox: viewInbox, today: viewToday, tasks: viewTasks, list: viewList, notes: viewNotes, graph: viewGraph, tags: viewTags, tag: viewTag, data: viewData };
+  m.innerHTML = `<div class="view">${(V[S.view] || viewHome)()}</div>`;
+  if (S.view === 'graph') initGraph();
+  if (S.view === 'today') { const n = findByTitle(`Nhật ký ${todayISO()}`); if (n) location.hash = '#/note/' + n.id; }
+}
+const noteLink = n => `<a href="#/note/${n.id}">${esc(n.title)}</a>`;
+const typePill = t => `<span class="pill" style="background:${TYPES[t].color}">${TYPES[t].label}</span>`;
+function taskRow(t) {
+  const over = t.due && !t.done && daysDiff(t.due) < 0;
+  return `<div class="row ${t.done ? 'done' : ''}"><input type="checkbox" data-task="${t.noteId}:${t.line}" ${t.done ? 'checked' : ''}><div class="t">${inline(t.text)}<div class="hint">${t.owner ? '@' + esc(t.owner) + ' · ' : ''}${noteLink(t.note)}</div></div><span class="m ${over ? 'over' : ''}">${t.due ? fmtDate(t.due) : ''}</span></div>`;
+}
+function viewHome() {
+  const notes = [...S.notes.values()]; const tasks = allTasks(); const open = tasks.filter(t => !t.done);
+  const overdue = open.filter(t => t.due && daysDiff(t.due) < 0); const todayT = open.filter(t => t.due && daysDiff(t.due) === 0);
+  const week = open.filter(t => t.due && daysDiff(t.due) > 0 && daysDiff(t.due) <= 7);
+  const decisions = notes.filter(n => noteType(n) === 'quyet-dinh');
+  const review = decisions.filter(n => { const r = noteFm(n).ra_soat; return r && daysDiff(r) <= 7; });
+  const pending = decisions.filter(n => noteFm(n).trang_thai === 'cho-duyet');
+  const goals = notes.filter(n => noteType(n) === 'muc-tieu' && noteFm(n).trang_thai !== 'hoan-thanh');
+  const avg = goals.length ? Math.round(goals.reduce((a, n) => a + (+noteFm(n).tien_do || 0), 0) / goals.length) : 0;
+  const inbox = notes.filter(n => noteType(n) === 'thu-nhan');
+  const recent = sortedNotes(notes).slice(0, 6);
+  const red = notes.filter(n => noteLevel(n) === 'do').length;
+  return `<h1>Tổng quan <span class="sub">${fmtDate(todayISO())}</span></h1>
+  <div class="toolbar"><button class="btn navy" data-cmd="new:nhat-ky">${ic('cal')} Nhật ký hôm nay</button><button class="btn" data-cmd="new:ra-soat-tuan">${ic('check')} Rà soát tuần</button><button class="btn" data-cmd="new:hop">${ic('users')} Biên bản họp</button><button class="btn" data-cmd="new:quyet-dinh">${ic('gavel')} Ghi quyết định</button><button class="btn" data-cmd="ai">${ic('ai')} Hỏi A.I với ngữ cảnh</button></div>
+  <div class="grid g4" style="margin-bottom:16px">
+    <div class="tile ${overdue.length ? 'warn' : ''}" data-go="#/view/tasks"><div class="k">${overdue.length}</div><div class="l">Việc quá hạn</div></div>
+    <div class="tile" data-go="#/view/tasks"><div class="k">${open.length}</div><div class="l">Việc đang mở</div></div>
+    <div class="tile ${pending.length ? 'warn' : ''}" data-go="#/view/list/quyet-dinh"><div class="k">${pending.length}</div><div class="l">Quyết định chờ duyệt</div></div>
+    <div class="tile" data-go="#/view/list/muc-tieu"><div class="k">${avg}%</div><div class="l">Tiến độ mục tiêu TB (${goals.length})</div></div>
+    <div class="tile" data-go="#/view/inbox"><div class="k">${inbox.length}</div><div class="l">Chờ xử lý trong Hộp thu nhận</div></div>
+    <div class="tile" data-go="#/view/notes"><div class="k">${notes.length}</div><div class="l">Ghi chú · ${red} mức Đỏ</div></div>
+  </div>
+  <div class="grid g2">
+    <div class="card"><h3>${ic('check')} Việc hôm nay & quá hạn <span class="n">${overdue.length + todayT.length}</span></h3>${[...overdue, ...todayT].map(taskRow).join('') || '<div class="empty">Không có việc đến hạn. Tốt.</div>'}${week.length ? `<h3 style="margin-top:14px">Tuần này <span class="n">${week.length}</span></h3>${week.slice(0, 6).map(taskRow).join('')}` : ''}</div>
+    <div class="card"><h3>${ic('target')} Mục tiêu đang chạy <span class="n">${goals.length}</span></h3>${goals.map(n => { const f = noteFm(n); const p = Math.max(0, Math.min(100, +f.tien_do || 0)); return `<div class="row"><div class="t">${noteLink(n)}<div class="bar"><i style="width:${p}%"></i></div><div class="hint">${p}% · ${f.chu_so_huu ? esc(f.chu_so_huu) + ' · ' : ''}hạn ${fmtDate(f.han) || '—'}</div></div></div>`; }).join('') || '<div class="empty">Chưa có mục tiêu. Tạo từ mẫu "Mục tiêu (OKR)".</div>'}</div>
+    <div class="card"><h3>${ic('gavel')} Quyết định cần rà soát / chờ duyệt <span class="n">${review.length + pending.length}</span></h3>${[...new Set([...pending, ...review])].map(n => { const f = noteFm(n); return `<div class="row"><div class="t">${noteLink(n)}<div class="hint">${STATUS[f.trang_thai] || ''}${f.nguoi_quyet ? ' · ' + esc(f.nguoi_quyet) : ''}</div></div><span class="m ${f.ra_soat && daysDiff(f.ra_soat) < 0 ? 'over' : ''}">${f.ra_soat ? 'rà soát ' + fmtDate(f.ra_soat) : ''}</span></div>`; }).join('') || '<div class="empty">Không có quyết định nào đến hạn rà soát.</div>'}</div>
+    <div class="card"><h3>${ic('note')} Vừa cập nhật</h3>${recent.map(n => `<div class="row"><div class="t">${noteLink(n)}<div class="hint">${esc(excerpt(n, 70))}</div></div><span class="m">${rel(n.updated)}</span></div>`).join('')}</div>
+  </div>`;
+}
+function viewInbox() {
+  const list = sortedNotes([...S.notes.values()].filter(n => noteType(n) === 'thu-nhan'));
+  return `<h1>Hộp thu nhận <span class="sub">Ghi nhanh trước, phân loại sau</span></h1>
+  <div class="toolbar"><button class="btn navy" data-cmd="capture">${ic('inbox')} Ghi nhanh</button><span class="hint">Mỗi mục: mở → đọc → chuyển thành Quyết định / Việc / Mục tiêu / SOP, hoặc xóa. Mục tiêu: hộp trống mỗi tối.</span></div>
+  ${list.map(n => `<div class="card" style="margin-bottom:10px"><div class="row"><div class="t">${noteLink(n)}<div class="hint">${esc(excerpt(n, 140))}</div></div><span class="m">${rel(n.updated)}</span></div><div class="toolbar" style="margin:6px 0 0">${['ghi-chu', 'quyet-dinh', 'muc-tieu', 'du-an', 'sop'].map(t => `<button class="btn sm" data-retype="${n.id}:${t}">→ ${TYPES[t].label}</button>`).join('')}<button class="btn sm danger" data-del="${n.id}">Xóa</button></div></div>`).join('') || '<div class="card empty">Hộp trống. Nhấn "Ghi nhanh" hoặc phím <b>Ctrl+K</b> rồi gõ ý tưởng.</div>'}`;
+}
+function viewToday() { return `<h1>Hôm nay</h1><div class="card"><p>Chưa có nhật ký cho ngày ${fmtDate(todayISO())}.</p><button class="btn navy" data-cmd="new:nhat-ky">${ic('cal')} Tạo nhật ký hôm nay</button></div>`; }
+function viewTasks() {
+  const tasks = allTasks(); const open = tasks.filter(t => !t.done); const done = tasks.filter(t => t.done).sort((a, b) => b.note.updated - a.note.updated).slice(0, 30);
+  const g = { 'Quá hạn': [], 'Hôm nay': [], 'Tuần này': [], 'Sau đó': [], 'Chưa có hạn': [] };
+  for (const t of open) { if (!t.due) g['Chưa có hạn'].push(t); else { const d = daysDiff(t.due); (d < 0 ? g['Quá hạn'] : d === 0 ? g['Hôm nay'] : d <= 7 ? g['Tuần này'] : g['Sau đó']).push(t); } }
+  const owners = {}; open.forEach(t => { const o = t.owner || '(chưa giao)'; owners[o] = (owners[o] || 0) + 1; });
+  return `<h1>Việc cần làm <span class="sub">${open.length} đang mở · gom từ mọi ghi chú có dòng <code>- [ ]</code></span></h1>
+  <div class="toolbar"><span class="hint">Cú pháp: <code>- [ ] Việc @Tên 📅 2026-11-05</code>. Tick ở đây sẽ cập nhật ngay trong ghi chú gốc.</span></div>
+  <div class="tagcloud" style="margin-bottom:16px">${Object.entries(owners).sort((a, b) => b[1] - a[1]).map(([o, c]) => `<span class="chip">${esc(o)} <b>${c}</b></span>`).join('')}</div>
+  <div class="grid g2">${Object.entries(g).filter(([, v]) => v.length).map(([k, v]) => `<div class="card"><h3>${k} <span class="n">${v.length}</span></h3>${v.sort((a, b) => (a.due || '9').localeCompare(b.due || '9')).map(taskRow).join('')}</div>`).join('') || '<div class="card empty">Không có việc đang mở.</div>'}
+  ${done.length ? `<div class="card"><h3>Đã xong gần đây <span class="n">${done.length}</span></h3>${done.map(taskRow).join('')}</div>` : ''}</div>`;
+}
+function viewList() {
+  const t = TYPES[S.listType] ? S.listType : 'ghi-chu';
+  const list = sortedNotes([...S.notes.values()].filter(n => noteType(n) === t));
+  const cols = { 'quyet-dinh': ['Quyết định', 'Trạng thái', 'Người quyết', 'Ngày', 'Rà soát', 'Mức'], 'muc-tieu': ['Mục tiêu', 'Tiến độ', 'Chủ sở hữu', 'Hạn', 'Trạng thái', 'Mức'], 'hop': ['Cuộc họp', 'Ngày', 'Việc mở', 'Thành phần', 'Mức'], 'du-an': ['Dự án', 'Tiến độ', 'Chủ sở hữu', 'Trạng thái', 'Việc mở', 'Mức'], 'sop': ['SOP', 'Phiên bản', 'Chủ sở hữu', 'Trạng thái', 'Cập nhật', 'Mức'] }[t] || ['Tiêu đề', 'Cập nhật', 'Mức'];
+  const tasksBy = id => allTasks().filter(x => x.noteId === id && !x.done).length;
+  const lv = n => `<i class="dot lv-${noteLevel(n)}" title="${LEVELS[noteLevel(n)]}"></i>`;
+  const rows = list.map(n => { const f = noteFm(n); const prog = `<div style="min-width:110px">${+f.tien_do || 0}%<div class="bar"><i style="width:${Math.min(100, +f.tien_do || 0)}%"></i></div></div>`;
+    const cells = { 'quyet-dinh': [noteLink(n), STATUS[f.trang_thai] || '—', esc(f.nguoi_quyet || ''), fmtDate(f.ngay), `<span class="${f.ra_soat && daysDiff(f.ra_soat) < 0 ? 'm over' : ''}">${fmtDate(f.ra_soat)}</span>`, lv(n)],
+      'muc-tieu': [noteLink(n), prog, esc(f.chu_so_huu || ''), fmtDate(f.han), STATUS[f.trang_thai] || '—', lv(n)],
+      'hop': [noteLink(n), fmtDate(f.ngay), tasksBy(n.id), esc(f.thanh_phan || ''), lv(n)],
+      'du-an': [noteLink(n), prog, esc(f.chu_so_huu || ''), STATUS[f.trang_thai] || '—', tasksBy(n.id), lv(n)],
+      'sop': [noteLink(n), esc(f.phien_ban || ''), esc(f.chu_so_huu || ''), STATUS[f.trang_thai] || '—', rel(n.updated), lv(n)] }[t] || [noteLink(n), rel(n.updated), lv(n)];
+    return `<tr>${cells.map(c => `<td>${c}</td>`).join('')}</tr>`; }).join('');
+  const tplKey = { 'hop': 'hop', 'quyet-dinh': 'quyet-dinh', 'muc-tieu': 'muc-tieu', 'sop': 'sop', 'du-an': 'du-an' }[t];
+  return `<h1>${typePill(t)} ${TYPES[t].label} <span class="sub">${list.length} mục</span></h1>
+  <div class="toolbar">${tplKey ? `<button class="btn navy" data-cmd="new:${tplKey}">${ic('tpl')} Tạo từ mẫu</button>` : ''}${t === 'hop' ? `<button class="btn" data-cmd="new:1-1">${ic('users')} Họp 1:1</button>` : ''}<button class="btn" data-cmd="ai">${ic('ai')} Đóng gói cho A.I</button></div>
+  <div style="overflow:auto"><table class="tb"><thead><tr>${cols.map(c => `<th>${c}</th>`).join('')}</tr></thead><tbody>${rows || `<tr><td colspan="${cols.length}" class="empty">Chưa có mục nào.</td></tr>`}</tbody></table></div>`;
+}
+function viewNotes() {
+  const list = sortedNotes([...S.notes.values()]);
+  return `<h1>Tất cả ghi chú <span class="sub">${list.length}</span></h1><div class="toolbar"><button class="btn navy" data-cmd="new">${ic('note')} Ghi chú trống</button>${Object.entries(TEMPLATES).map(([k, t]) => `<button class="btn" data-cmd="new:${k}">${t.label}</button>`).join('')}</div>
+  <div style="overflow:auto"><table class="tb"><thead><tr><th>Tiêu đề</th><th>Loại</th><th>Thẻ</th><th>Liên kết</th><th>Cập nhật</th></tr></thead><tbody>${list.map(n => `<tr><td>${noteLink(n)}<div class="hint">${esc(excerpt(n, 80))}</div></td><td>${typePill(noteType(n))}</td><td>${noteTags(n).slice(0, 4).map(t => `<a class="chip" href="#/tag/${encodeURIComponent(t)}">#${esc(t)}</a>`).join(' ')}</td><td>${noteLinks(n).length} đi · ${backlinks(n.id).length} về</td><td class="m">${rel(n.updated)}</td></tr>`).join('')}</tbody></table></div>`;
+}
+function viewTags() {
+  const c = {}; for (const n of S.notes.values()) noteTags(n).forEach(t => c[t] = (c[t] || 0) + 1);
+  const ks = Object.keys(c).sort((a, b) => c[b] - c[a] || a.localeCompare(b));
+  return `<h1>Thẻ <span class="sub">${ks.length}</span></h1><div class="tagcloud">${ks.map(t => `<a href="#/tag/${encodeURIComponent(t)}">#${esc(t)}<b>${c[t]}</b></a>`).join('') || '<div class="empty">Chưa có thẻ. Gõ #ten-the trong ghi chú.</div>'}</div>`;
+}
+function viewTag() {
+  const t = S.tagFilter; const list = sortedNotes([...S.notes.values()].filter(n => noteTags(n).includes(t)));
+  return `<h1>#${esc(t)} <span class="sub">${list.length} ghi chú</span></h1>${list.map(n => `<div class="card" style="margin-bottom:10px"><div class="row"><div class="t">${typePill(noteType(n))} ${noteLink(n)}<div class="hint">${esc(excerpt(n, 140))}</div></div><span class="m">${rel(n.updated)}</span></div></div>`).join('')}`;
+}
+function viewGraph() {
+  return `<h1>Sơ đồ liên kết <span class="sub">${S.notes.size} ghi chú · kéo để di chuyển, lăn chuột để phóng, bấm để mở</span></h1><div class="gwrap"><canvas id="graph"></canvas><div class="legend">${Object.entries(TYPES).map(([k, t]) => `<span><i class="dot" style="background:${t.color}"></i>${t.label}</span>`).join('')}</div></div>`;
+}
+function viewData() {
+  const size = [...S.notes.values()].reduce((a, n) => a + n.body.length, 0);
+  return `<h1>Dữ liệu & Cài đặt</h1>
+  <div class="notice">${ic('gear')}<div><b>Dữ liệu nằm trên trình duyệt này</b> (IndexedDB), không gửi lên máy chủ nào. Đổi máy, xóa cache hoặc trình duyệt dọn bộ nhớ sẽ mất dữ liệu — hãy <b>xuất sao lưu</b> định kỳ. Định dạng .md tương thích Obsidian: kéo thư mục xuất ra vào Obsidian là dùng ngay, và ngược lại.</div></div>
+  <div class="grid g2">
+    <div class="card"><h3>${ic('dl')} Xuất</h3><p class="hint">${S.notes.size} ghi chú · ${(size / 1024).toFixed(1)} KB văn bản</p><div class="toolbar"><button class="btn navy" data-cmd="exportZip">Tải .zip các file .md (chuẩn Obsidian)</button><button class="btn" data-cmd="exportJson">Sao lưu .json</button></div></div>
+    <div class="card"><h3>${ic('inbox')} Nhập</h3><p class="hint">Nhập một vault Obsidian (chọn thư mục) hoặc nhiều file .md. Trùng tiêu đề sẽ ghi đè nội dung.</p><div class="toolbar"><button class="btn navy" data-cmd="importDir">Chọn thư mục vault</button><button class="btn" data-cmd="importMd">Chọn file .md</button><button class="btn" data-cmd="importJson">Khôi phục .json</button></div></div>
+    <div class="card"><h3>${ic('ai')} A.I & Phân loại dữ liệu</h3><p class="hint">Mỗi ghi chú có mức <b>Xanh / Vàng / Đỏ</b> (thuộc tính <code>muc_do</code>). Khi đóng gói ngữ cảnh cho A.I, mức Đỏ <b>luôn bị loại</b>; mức Vàng chỉ gửi khi Sếp bật tùy chọn. Đây là Ranh giới Đỏ của nền tảng, cưỡng chế ở tầng ứng dụng.</p></div>
+    <div class="card"><h3>${ic('trash')} Vùng nguy hiểm</h3><div class="toolbar"><button class="btn" data-cmd="seed">Nạp lại dữ liệu mẫu</button><button class="btn danger" data-cmd="wipe">Xóa toàn bộ dữ liệu</button></div></div>
+  </div>
+  <div class="card" style="margin-top:14px"><h3>Phím tắt</h3><div class="hint"><b>Ctrl/⌘ K</b> tìm & lệnh · <b>Ctrl/⌘ N</b> ghi chú mới · <b>Ctrl/⌘ E</b> đổi chế độ soạn/xem · <b>Ctrl/⌘ S</b> lưu ngay · Gõ <code>[[</code> để liên kết ghi chú, <code>#the</code> để gắn thẻ, <code>- [ ]</code> để tạo việc</div></div>`;
+}
+
+/* ---------------- Editor ---------------- */
+function renderEditor(m) {
+  const n = S.notes.get(S.cur); if (!n) { location.hash = '#/view/home'; return; }
+  const t = noteType(n);
+  const existing = $('#ed'); 
+  if (existing && existing.dataset.id === n.id) { // just refresh preview + header bits
+    $('#prev').innerHTML = `<div class="md">${renderMd(n.body)}</div>`; return;
+  }
+  m.innerHTML = `<div class="ed" id="ed" data-id="${n.id}">
+    <div class="tbar">${typePill(t)}<input class="ttl" id="ttl" value="${esc(n.title)}" placeholder="Tiêu đề ghi chú" aria-label="Tiêu đề">
+      <div class="seg" role="group" aria-label="Chế độ"><button data-mode="edit" class="${S.mode === 'edit' ? 'on' : ''}">Soạn</button><button data-mode="split" class="${S.mode === 'split' ? 'on' : ''}">Song song</button><button data-mode="prev" class="${S.mode === 'prev' ? 'on' : ''}">Xem</button></div>
+      <button class="btn" data-cmd="tplMenu" title="Chèn mẫu">${ic('tpl')}<span class="lbl">Mẫu</span></button>
+      <button class="btn gold" data-cmd="ai" title="Đóng gói ngữ cảnh ghi chú này cho A.I">${ic('ai')}<span class="lbl">Hỏi A.I</span></button>
+      <button class="btn" data-cmd="exportMd" title="Tải file .md">${ic('dl')}</button>
+      <button class="btn danger" data-cmd="del" title="Xóa ghi chú">${ic('trash')}</button>
+    </div>
+    <div class="panes m-${S.mode} ${S.mode === 'split' ? 'split' : ''}"><textarea id="ta" spellcheck="false" placeholder="Viết Markdown. [[Tên ghi chú]] để liên kết · #the để gắn thẻ · - [ ] để tạo việc">${esc(n.body)}</textarea><div class="prev" id="prev"><div class="md">${renderMd(n.body)}</div></div></div>
+  </div>`;
+  const ta = $('#ta'), ttl = $('#ttl');
+  let renderT = null;
+  ta.addEventListener('input', () => { n.body = ta.value; n.updated = Date.now(); scheduleSave(n); clearTimeout(renderT); renderT = setTimeout(() => { $('#prev').innerHTML = `<div class="md">${renderMd(n.body)}</div>`; renderRp(); renderNav(); }, 120); });
+  ttl.addEventListener('input', () => { n.title = ttl.value; n.updated = Date.now(); reindex(); scheduleSave(n); renderList(); });
+  ta.addEventListener('keydown', e => {
+    if (e.key === 'Tab') { e.preventDefault(); const s = ta.selectionStart; ta.setRangeText('  ', s, ta.selectionEnd, 'end'); ta.dispatchEvent(new Event('input')); }
+    if (e.key === 'Enter' && !e.shiftKey) { // continue lists
+      const s = ta.selectionStart; const lineStart = ta.value.lastIndexOf('\n', s - 1) + 1; const line = ta.value.slice(lineStart, s);
+      const mm = line.match(/^(\s*)([-*+]|\d+\.)\s+(\[[ xX]\]\s+)?(.*)$/);
+      if (mm) { e.preventDefault(); if (!mm[4].trim() && !mm[3]) { ta.setRangeText('', lineStart, s, 'end'); } else if (!mm[4].trim() && mm[3]) { ta.setRangeText('', lineStart, s, 'end'); } else { const num = /\d/.test(mm[2]) ? (parseInt(mm[2]) + 1) + '.' : mm[2]; ta.setRangeText(`\n${mm[1]}${num} ${mm[3] ? '[ ] ' : ''}`, s, s, 'end'); } ta.dispatchEvent(new Event('input')); }
+    }
+    if (e.key === '[' && ta.value[ta.selectionStart - 1] === '[' && ta.selectionStart === ta.selectionEnd) { e.preventDefault(); ta.setRangeText('[]]', ta.selectionStart, ta.selectionStart, 'start'); ta.selectionStart = ta.selectionEnd = ta.selectionStart + 1; ta.dispatchEvent(new Event('input')); }
+    else if (e.key === ']' && ta.value[ta.selectionStart] === ']' && ta.selectionStart === ta.selectionEnd) { e.preventDefault(); ta.selectionStart = ta.selectionEnd = ta.selectionStart + 1; }
+  });
+  if (!n.body && S.mode === 'prev') setMode('split');
+  if (!n.title || n.title === 'Ghi chú mới') { ttl.focus(); ttl.select(); } else if (S.mode !== 'prev') ta.focus();
+}
+function setMode(mode) { S.mode = mode; localStorage.setItem('abm-sb-mode', mode); const p = $('.panes'); if (p) { p.className = `panes m-${mode} ${mode === 'split' ? 'split' : ''}`; $$('.seg button').forEach(b => b.classList.toggle('on', b.dataset.mode === mode)); } }
+
+/* ---------------- Right panel ---------------- */
+function renderRp() {
+  const rp = $('#rp'); const n = S.cur && S.notes.get(S.cur);
+  if (!n) { rp.innerHTML = ''; return; }
+  const f = noteFm(n); const t = noteType(n);
+  const sel = (k, opts, v) => `<select data-fm="${k}">${Object.entries(opts).map(([a, b]) => `<option value="${a}" ${a === v ? 'selected' : ''}>${b}</option>`).join('')}</select>`;
+  const inp = (k, v, type = 'text') => `<input data-fm="${k}" type="${type}" value="${esc(v || '')}">`;
+  const bl = backlinks(n.id); const out = noteLinks(n);
+  const heads = [...parseFm(n.body).content.matchAll(/^(#{1,3})\s+(.*)$/mg)];
+  rp.innerHTML = `<h4>Thuộc tính</h4>
+    <div class="f"><label>Loại</label>${sel('loai', Object.fromEntries(Object.entries(TYPES).map(([k, v]) => [k, v.label])), t)}</div>
+    <div class="f"><label>Mức dữ liệu</label>${sel('muc_do', LEVELS, noteLevel(n))}</div>
+    <div class="f"><label>Trạng thái</label>${sel('trang_thai', { '': '—', ...STATUS }, f.trang_thai || '')}</div>
+    <div class="f"><label>Chủ sở hữu</label>${inp('chu_so_huu', f.chu_so_huu)}</div>
+    ${t === 'quyet-dinh' ? `<div class="f"><label>Người quyết</label>${inp('nguoi_quyet', f.nguoi_quyet)}</div><div class="f"><label>Rà soát</label>${inp('ra_soat', f.ra_soat, 'date')}</div>` : ''}
+    ${t === 'muc-tieu' || t === 'du-an' ? `<div class="f"><label>Tiến độ ${+f.tien_do || 0}%</label>${inp('tien_do', +f.tien_do || 0, 'range')}</div><div class="f"><label>Hạn</label>${inp('han', f.han, 'date')}</div>` : ''}
+    ${t === 'hop' || t === 'nhat-ky' ? `<div class="f"><label>Ngày</label>${inp('ngay', f.ngay, 'date')}</div>` : ''}
+    ${t === 'sop' ? `<div class="f"><label>Phiên bản</label>${inp('phien_ban', f.phien_ban)}</div>` : ''}
+    <div class="f"><label>Thẻ</label>${inp('the', f.the)}</div>
+    <div class="hint" style="margin-top:4px">Tạo ${fmtDate(todayISO(new Date(n.created)))} · Sửa ${rel(n.updated)}${n.path ? ' · ' + esc(n.path) : ''}</div>
+    <h4>Liên kết ngược <span class="chip">${bl.length}</span></h4><ul>${bl.map(b => `<li><a href="#/note/${b.id}">${esc(b.title)}</a><small>${esc(excerpt(b, 60))}</small></li>`).join('') || '<li class="hint">Chưa có ghi chú nào trỏ tới đây.</li>'}</ul>
+    <h4>Liên kết đi <span class="chip">${out.length}</span></h4><ul>${out.map(tt => { const x = findByTitle(tt); return `<li><a data-wl="${esc(tt)}" class="${x ? '' : 'hint'}">${esc(tt)}${x ? '' : ' (chưa có)'}</a></li>`; }).join('') || '<li class="hint">Gõ [[Tên ghi chú]] để liên kết.</li>'}</ul>
+    <h4>Thẻ</h4><div class="tagcloud">${noteTags(n).map(tg => `<a href="#/tag/${encodeURIComponent(tg)}" style="padding:2px 9px;font-size:12px">#${esc(tg)}</a>`).join('') || '<span class="hint">—</span>'}</div>
+    ${heads.length ? `<h4>Dàn ý</h4><div class="ol">${heads.map(h => `<a class="l${h[1].length}" data-hd="${esc(h[2])}">${esc(h[2])}</a>`).join('')}</div>` : ''}`;
+  $$('[data-fm]', rp).forEach(el => el.addEventListener('change', () => {
+    n.body = withFm(n.body, { [el.dataset.fm]: el.value }); n.updated = Date.now(); DB.put(n);
+    const ta = $('#ta'); if (ta) ta.value = n.body; render();
+  }));
+}
+
+/* ---------------- Graph ---------------- */
+let G = null;
+function initGraph() {
+  const cv = $('#graph'); if (!cv) return; const ctx = cv.getContext('2d');
+  const notes = [...S.notes.values()].slice(0, 400); const idx = new Map(notes.map((n, i) => [n.id, i]));
+  const W = () => cv.clientWidth, H = () => cv.clientHeight;
+  const nodes = notes.map((n, i) => ({ n, x: W() / 2 + Math.cos(i) * 120 + Math.random() * 60, y: H() / 2 + Math.sin(i) * 120 + Math.random() * 60, vx: 0, vy: 0, deg: 0 }));
+  const edges = []; notes.forEach((n, i) => noteLinks(n).forEach(t => { const x = findByTitle(t); if (x && idx.has(x.id) && idx.get(x.id) !== i) { edges.push([i, idx.get(x.id)]); nodes[i].deg++; nodes[idx.get(x.id)].deg++; } }));
+  let zoom = 1, ox = 0, oy = 0, drag = null, pan = null, hover = -1, ticks = 0, raf = 0, touched = false;
+  const fit = () => { if (touched || !nodes.length) return; let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (const p of nodes) { x0 = Math.min(x0, p.x); y0 = Math.min(y0, p.y); x1 = Math.max(x1, p.x); y1 = Math.max(y1, p.y); } const pad = 70; zoom = Math.max(0.3, Math.min(1.6, Math.min(W() / (x1 - x0 + pad * 2), H() / (y1 - y0 + pad * 2)))); ox = W() / 2 - (x0 + x1) / 2 * zoom; oy = H() / 2 - (y0 + y1) / 2 * zoom; };
+  const size = () => { const r = devicePixelRatio || 1; cv.width = W() * r; cv.height = H() * r; ctx.setTransform(r, 0, 0, r, 0, 0); };
+  size(); new ResizeObserver(size).observe(cv);
+  const step = () => {
+    if (ticks++ > 420) return;
+    if (ticks % 10 === 0 || ticks === 420) fit();
+    const k = 0.9;
+    for (let i = 0; i < nodes.length; i++) for (let j = i + 1; j < nodes.length; j++) { const a = nodes[i], b = nodes[j]; let dx = a.x - b.x, dy = a.y - b.y, d2 = dx * dx + dy * dy + 0.01; const f = Math.min(1500 / d2, 30); dx *= f; dy *= f; a.vx += dx; a.vy += dy; b.vx -= dx; b.vy -= dy; }
+    for (const [i, j] of edges) { const a = nodes[i], b = nodes[j]; const dx = b.x - a.x, dy = b.y - a.y; const d = Math.sqrt(dx * dx + dy * dy) + 0.01; const f = (d - 90) * 0.02; a.vx += dx / d * f; a.vy += dy / d * f; b.vx -= dx / d * f; b.vy -= dy / d * f; }
+    for (const p of nodes) { p.vx += (W() / 2 - p.x) * 0.012; p.vy += (H() / 2 - p.y) * 0.012; if (p !== drag) { p.x += p.vx * k; p.y += p.vy * k; } p.vx *= 0.6; p.vy *= 0.6; }
+  };
+  const draw = () => {
+    ctx.clearRect(0, 0, W(), H()); ctx.save(); ctx.translate(ox, oy); ctx.scale(zoom, zoom);
+    const dark = matchMedia('(prefers-color-scheme: dark)').matches && document.documentElement.dataset.theme !== 'light' || document.documentElement.dataset.theme === 'dark';
+    ctx.strokeStyle = dark ? '#3a3f6a' : '#cfd3e6'; ctx.lineWidth = 1 / zoom;
+    for (const [i, j] of edges) { ctx.beginPath(); ctx.moveTo(nodes[i].x, nodes[i].y); ctx.lineTo(nodes[j].x, nodes[j].y); ctx.stroke(); }
+    ctx.font = `${12 / zoom}px ${getComputedStyle(document.body).fontFamily}`; ctx.textAlign = 'center';
+    nodes.forEach((p, i) => { const r = 4 + Math.min(10, p.deg * 1.4); ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.fillStyle = TYPES[noteType(p.n)].color; ctx.fill(); if (i === hover) { ctx.strokeStyle = '#f9b508'; ctx.lineWidth = 3 / zoom; ctx.stroke(); } if (zoom > 0.5 || i === hover || p.deg > 2) { ctx.fillStyle = dark ? '#eef0fa' : '#12142b'; ctx.fillText(p.n.title.slice(0, 28), p.x, p.y + r + 13 / zoom); } });
+    ctx.restore();
+  };
+  const loop = () => { step(); draw(); raf = requestAnimationFrame(loop); };
+  cancelAnimationFrame(G?.raf); G = { raf: 0 }; loop(); G.raf = raf;
+  const pt = e => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left - ox) / zoom, y: (e.clientY - r.top - oy) / zoom }; };
+  const hit = e => { const p = pt(e); let best = -1, bd = 14 / zoom; nodes.forEach((q, i) => { const d = Math.hypot(q.x - p.x, q.y - p.y); if (d < bd) { bd = d; best = i; } }); return best; };
+  cv.addEventListener('pointerdown', e => { touched = true; const i = hit(e); if (i >= 0) { drag = nodes[i]; drag._moved = false; } else pan = { x: e.clientX - ox, y: e.clientY - oy }; cv.setPointerCapture(e.pointerId); ticks = Math.min(ticks, 380); });
+  cv.addEventListener('pointermove', e => { if (drag) { const p = pt(e); drag.x = p.x; drag.y = p.y; drag._moved = true; ticks = 300; } else if (pan) { ox = e.clientX - pan.x; oy = e.clientY - pan.y; } else { hover = hit(e); cv.style.cursor = hover >= 0 ? 'pointer' : 'grab'; } if (ticks > 420) draw(); });
+  cv.addEventListener('pointerup', e => { if (drag && !drag._moved) location.hash = '#/note/' + drag.n.id; drag = null; pan = null; });
+  cv.addEventListener('wheel', e => { e.preventDefault(); touched = true; const r = cv.getBoundingClientRect(); const mx = e.clientX - r.left, my = e.clientY - r.top; const z = Math.max(0.3, Math.min(3, zoom * (e.deltaY < 0 ? 1.1 : 0.9))); ox = mx - (mx - ox) * z / zoom; oy = my - (my - oy) * z / zoom; zoom = z; if (ticks > 420) draw(); }, { passive: false });
+}
+
+/* ---------------- Command palette ---------------- */
+const PAL = { items: [], idx: 0 };
+function commands() {
+  const c = [
+    { k: 'Lệnh', t: 'Ghi chú mới (trống)', run: () => createNote() },
+    ...Object.entries(TEMPLATES).map(([k, t]) => ({ k: 'Mẫu', t: 'Tạo từ mẫu: ' + t.label, run: () => newFromTemplate(k) })),
+    { k: 'Lệnh', t: 'Ghi nhanh vào Hộp thu nhận', run: quickCapture },
+    { k: 'Lệnh', t: 'Hỏi A.I với ngữ cảnh', run: aiPack },
+    { k: 'Đi tới', t: 'Tổng quan', run: () => location.hash = '#/view/home' },
+    { k: 'Đi tới', t: 'Việc cần làm', run: () => location.hash = '#/view/tasks' },
+    { k: 'Đi tới', t: 'Sổ quyết định', run: () => location.hash = '#/view/list/quyet-dinh' },
+    { k: 'Đi tới', t: 'Mục tiêu', run: () => location.hash = '#/view/list/muc-tieu' },
+    { k: 'Đi tới', t: 'Sơ đồ liên kết', run: () => location.hash = '#/view/graph' },
+    { k: 'Đi tới', t: 'Dữ liệu & Cài đặt', run: () => location.hash = '#/view/data' },
+    { k: 'Lệnh', t: 'Xuất .zip (Obsidian)', run: exportZip },
+    { k: 'Lệnh', t: 'Đổi giao diện sáng / tối', run: toggleTheme },
+  ];
+  return c;
+}
+function openPal(prefill = '') { $('#palOv').classList.add('show'); const i = $('#palIn'); i.value = prefill; i.focus(); palSearch(); }
+function closePal() { $('#palOv').classList.remove('show'); }
+function palSearch() {
+  const q = $('#palIn').value.trim(); const ql = q.toLowerCase();
+  let items = [];
+  if (q.startsWith('>')) { const qq = ql.slice(1).trim(); items = commands().filter(c => c.t.toLowerCase().includes(qq)).map(c => ({ k: c.k, t: c.t, run: c.run })); }
+  else {
+    const notes = [...S.notes.values()];
+    const scored = notes.map(n => { const tl = n.title.toLowerCase(); let s = 0; if (!ql) s = 1; else if (tl === ql) s = 100; else if (tl.startsWith(ql)) s = 60; else if (tl.includes(ql)) s = 40; else if (n.body.toLowerCase().includes(ql)) s = 10; return { n, s }; }).filter(x => x.s > 0).sort((a, b) => b.s - a.s || b.n.updated - a.n.updated).slice(0, 12);
+    items = scored.map(({ n }) => { let snip = excerpt(n, 80); if (ql) { const i = n.body.toLowerCase().indexOf(ql); if (i >= 0) snip = '…' + n.body.slice(Math.max(0, i - 30), i + 60).replace(/\n/g, ' ') + '…'; } return { k: TYPES[noteType(n)].label, t: n.title, s: snip, run: () => location.hash = '#/note/' + n.id }; });
+    if (ql) items.push({ k: 'Tạo mới', t: `Tạo ghi chú "${q}"`, run: () => createNote({ title: q }) }, { k: 'Thu nhận', t: `Ghi nhanh: "${q}"`, run: () => quickCapture(q) });
+    if (!ql) items.push(...commands().slice(0, 6));
+  }
+  PAL.items = items; PAL.idx = 0;
+  $('#palRes').innerHTML = items.map((it, i) => `<div class="it ${i === 0 ? 'on' : ''}" data-i="${i}"><span class="k">${esc(it.k)}</span><div style="min-width:0"><b>${esc(it.t)}</b>${it.s ? `<br><small>${esc(it.s)}</small>` : ''}</div></div>`).join('') || '<div class="empty" style="padding:12px">Không có kết quả.</div>';
+}
+function palRun(i) { const it = PAL.items[i]; if (!it) return; closePal(); it.run(); }
+
+/* ---------------- Templates / capture ---------------- */
+async function newFromTemplate(k) { const t = TEMPLATES[k]; if (!t) return createNote(); const title = t.title(); const ex = findByTitle(title); if (ex && k === 'nhat-ky') { location.hash = '#/note/' + ex.id; return; } return createNote({ title, body: t.body() }); }
+function insertTemplate(k) { const n = S.notes.get(S.cur); const ta = $('#ta'); if (!n || !ta) return newFromTemplate(k); const t = TEMPLATES[k]; const body = t.body(); n.body = n.body.trim() ? n.body + '\n\n' + parseFm(body).content : body; if (!n.title || n.title === 'Ghi chú mới') n.title = t.title(); n.updated = Date.now(); DB.put(n); reindex(); ta.value = n.body; $('#ttl').value = n.title; render(); }
+async function quickCapture(text) {
+  const t = text ?? prompt('Ghi nhanh (một dòng, phân loại sau):'); if (!t || !t.trim()) return;
+  const n = await createNote({ title: t.trim().slice(0, 80), body: `---\nloai: thu-nhan\nngay: ${todayISO()}\n---\n${t.trim()}\n`, open: false });
+  toast('Đã ghi vào Hộp thu nhận'); render(); return n;
+}
+async function retype(id, t) { const n = S.notes.get(id); if (!n) return; n.body = withFm(n.body, { loai: t }); n.updated = Date.now(); await DB.put(n); render(); toast('Đã chuyển thành ' + TYPES[t].label); }
+
+/* ---------------- A.I context pack ---------------- */
+const PROMPTS = {
+  'tom-tat': { l: 'Tóm tắt & rút việc cần làm', p: 'Hãy đọc ngữ cảnh bên dưới. Tóm tắt trong 5 gạch đầu dòng, liệt kê các quyết định đã chốt, các việc đang mở (ai · làm gì · hạn), và 3 rủi ro cần tôi chú ý. Phân định rõ DỮ KIỆN · SUY LUẬN · ĐỀ XUẤT. Không bịa thông tin ngoài ngữ cảnh.' },
+  'phan-bien': { l: 'Phản biện quyết định', p: 'Đóng vai cố vấn chiến lược phản biện. Với quyết định trong ngữ cảnh: (1) chỉ ra giả định yếu nhất, (2) 3 kịch bản thất bại và dấu hiệu sớm, (3) phương án thay thế tốt hơn nếu có, (4) điều kiện nên đảo ngược quyết định. Nói thẳng, có căn cứ từ ngữ cảnh, không nịnh.' },
+  'soan-sop': { l: 'Chuẩn hóa thành SOP', p: 'Từ ngữ cảnh, soạn một SOP theo khung: Mục đích & Phạm vi · Vai trò (người / vai số) · Các bước (đầu vào → đầu ra) · Tiêu chí đạt · Lỗi thường gặp · Ranh giới Đỏ. Chỉ dùng thông tin có trong ngữ cảnh; chỗ thiếu ghi [CẦN BỔ SUNG].' },
+  'chuan-bi-hop': { l: 'Chuẩn bị họp tuần', p: 'Từ ngữ cảnh, soạn agenda họp tuần 30 phút: 3 vấn đề cần quyết, số liệu then chốt cần xem, việc quá hạn cần hỏi, và 5 câu hỏi sắc bén tôi nên đặt cho đội ngũ.' },
+  'giao-viec': { l: 'Soạn lệnh giao việc cho Nhân sự số', p: 'Từ ngữ cảnh, soạn một Prompt giao việc cho một A.I Agent theo 8 yếu tố: Bài toán · Dữ liệu · Công cụ/Model · Skill · Workflow · Output · Tương tác · Con người/Văn hóa. Nêu rõ điểm con người phải duyệt.' },
+  'tu-do': { l: 'Tự viết yêu cầu', p: '[Viết yêu cầu của Sếp ở đây]' },
+};
+function aiPack() {
+  const cur = S.cur && S.notes.get(S.cur);
+  const body = `<h2>${ic('ai')} Đóng gói ngữ cảnh cho A.I <button class="btn sm x" data-close>${ic('x')}</button></h2>
+  <p class="hint">Nền tảng gom các ghi chú liên quan thành một khối văn bản để Sếp dán vào Claude / ChatGPT / Gemini / NotebookLM. Ghi chú mức <b>Đỏ luôn bị loại</b>. Không có dữ liệu nào rời khỏi trình duyệt cho tới khi Sếp dán.</p>
+  <div class="opts"><label>Yêu cầu: <select id="aiP">${Object.entries(PROMPTS).map(([k, v]) => `<option value="${k}">${v.l}</option>`).join('')}</select></label>
+  <label><input type="checkbox" id="aiCur" ${cur ? 'checked' : 'disabled'}> Ghi chú hiện tại${cur ? ': ' + esc(cur.title) : ''}</label>
+  <label><input type="checkbox" id="aiOut" ${cur ? 'checked' : 'disabled'}> Ghi chú được liên kết</label>
+  <label><input type="checkbox" id="aiBack" ${cur ? '' : 'disabled'}> Ghi chú trỏ tới</label>
+  <label><input type="checkbox" id="aiTasks"> Việc đang mở (toàn hệ thống)</label>
+  <label><input type="checkbox" id="aiDec"> Sổ quyết định 30 ngày</label>
+  <label><input type="checkbox" id="aiGoals" ${cur ? '' : 'checked'}> Mục tiêu đang chạy</label>
+  <label><input type="checkbox" id="aiYellow" checked> Cho phép mức Vàng (nội bộ)</label></div>
+  <textarea id="aiOut2" readonly></textarea>
+  <div class="toolbar" style="margin:10px 0 0"><button class="btn navy" data-copy>${ic('copy')} Sao chép</button><a class="btn" href="https://claude.ai/new" target="_blank" rel="noopener">Mở Claude</a><a class="btn" href="https://chatgpt.com/" target="_blank" rel="noopener">Mở ChatGPT</a><a class="btn" href="https://gemini.google.com/" target="_blank" rel="noopener">Mở Gemini</a><a class="btn" href="https://notebooklm.google.com/" target="_blank" rel="noopener">NotebookLM</a><span class="hint" id="aiStat"></span></div>`;
+  openModal(body);
+  const build = () => {
+    const allowY = $('#aiYellow').checked; const skipped = []; const parts = []; const seen = new Set();
+    const add = (n, why) => { if (!n || seen.has(n.id)) return; const lv = noteLevel(n); if (lv === 'do' || (lv === 'vang' && !allowY)) { skipped.push(n.title); return; } seen.add(n.id); parts.push(`### ${n.title}${why ? ` (${why})` : ''}\n${n.body.trim()}`); };
+    if (cur && $('#aiCur').checked) add(cur, 'ghi chú chính');
+    if (cur && $('#aiOut').checked) noteLinks(cur).forEach(t => add(findByTitle(t), 'được liên kết'));
+    if (cur && $('#aiBack').checked) backlinks(cur.id).forEach(n => add(n, 'trỏ tới ghi chú chính'));
+    if ($('#aiGoals').checked) [...S.notes.values()].filter(n => noteType(n) === 'muc-tieu' && noteFm(n).trang_thai !== 'hoan-thanh').forEach(n => add(n, 'mục tiêu'));
+    if ($('#aiDec').checked) [...S.notes.values()].filter(n => noteType(n) === 'quyet-dinh' && (!noteFm(n).ngay || daysDiff(noteFm(n).ngay) >= -30)).forEach(n => add(n, 'quyết định'));
+    let tasks = '';
+    if ($('#aiTasks').checked) { const open = allTasks().filter(t => !t.done && noteLevel(t.note) !== 'do' && (allowY || noteLevel(t.note) !== 'vang')); tasks = '### Việc đang mở\n' + open.map(t => `- ${t.text}${t.owner ? ' @' + t.owner : ''}${t.due ? ' (hạn ' + fmtDate(t.due) + ')' : ''} — từ "${t.note.title}"`).join('\n'); }
+    const p = PROMPTS[$('#aiP').value].p;
+    const txt = `Bạn là trợ lý chiến lược của một CEO. Nguyên tắc: Brain First – A.I Second; không bịa; phân định Dữ kiện · Suy luận · Đề xuất; trả lời tiếng Việt, ngắn gọn, kết luận trước.\n\n## YÊU CẦU\n${p}\n\n## NGỮ CẢNH (ngày ${fmtDate(todayISO())})\n${[...parts, tasks].filter(Boolean).join('\n\n') || '(chưa chọn ngữ cảnh)'}\n\n(Ghi chú: nội dung mức Đỏ đã bị loại khỏi ngữ cảnh theo chính sách dữ liệu.)`;
+    $('#aiOut2').value = txt; $('#aiStat').textContent = `${parts.length} ghi chú · ${(txt.length / 4 | 0).toLocaleString('vi-VN')} token ước tính${skipped.length ? ` · bỏ qua ${skipped.length} ghi chú theo mức dữ liệu` : ''}`;
+  };
+  $$('#modal input,#modal select').forEach(el => el.addEventListener('change', build)); build();
+  $('[data-copy]', $('#modal')).addEventListener('click', () => navigator.clipboard.writeText($('#aiOut2').value).then(() => toast('Đã sao chép ngữ cảnh. Dán vào công cụ A.I của Sếp.')));
+}
+function openModal(html) { $('#modal').innerHTML = html; $('#modOv').classList.add('show'); $('[data-close]', $('#modal'))?.addEventListener('click', closeModal); }
+function closeModal() { $('#modOv').classList.remove('show'); }
+function tplMenu() {
+  openModal(`<h2>${ic('tpl')} Chèn mẫu vào ghi chú <button class="btn sm x" data-close>${ic('x')}</button></h2><p class="hint">Mẫu được thiết kế cho công việc lãnh đạo: mỗi mẫu có thuộc tính để nền tảng tự gom vào Tổng quan, Sổ quyết định, Mục tiêu, Việc cần làm.</p><div class="grid g2">${Object.entries(TEMPLATES).map(([k, t]) => `<button class="card" style="text-align:left;cursor:pointer" data-tpl="${k}"><b>${t.label}</b><div class="hint">${esc(parseFm(t.body()).content.split('\n').filter(l => l.startsWith('## ')).map(l => l.slice(3)).join(' · '))}</div></button>`).join('')}</div>`);
+  $$('[data-tpl]', $('#modal')).forEach(b => b.addEventListener('click', () => { closeModal(); insertTemplate(b.dataset.tpl); }));
+}
+
+/* ---------------- Import / Export ---------------- */
+const safeName = s => s.replace(/[\\/:*?"<>|]/g, '-').trim() || 'ghi-chu';
+function download(name, blob) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
+function exportMd() { const n = S.notes.get(S.cur); if (!n) return; download(safeName(n.title) + '.md', new Blob([n.body], { type: 'text/markdown' })); }
+function exportJson() { download(`abm-second-brain-${todayISO()}.json`, new Blob([JSON.stringify({ app: 'abm-second-brain', v: 1, exported: Date.now(), notes: [...S.notes.values()] }, null, 1)], { type: 'application/json' })); }
+// Minimal ZIP writer (store, no compression) — đủ để Obsidian/Explorer mở.
+const CRC = (() => { const t = new Int32Array(256); for (let i = 0; i < 256; i++) { let c = i; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[i] = c; } return b => { let c = -1; for (let i = 0; i < b.length; i++) c = t[(c ^ b[i]) & 255] ^ (c >>> 8); return (c ^ -1) >>> 0; }; })();
+function makeZip(files) {
+  const enc = new TextEncoder(); const parts = []; const cd = []; let off = 0;
+  const u16 = n => [n & 255, (n >> 8) & 255], u32 = n => [n & 255, (n >> 8) & 255, (n >> 16) & 255, (n >>> 24) & 255];
+  const d = new Date(); const dt = u16((d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1)), dd = u16(((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate());
+  for (const [name, text] of files) {
+    const nb = enc.encode(name), db = enc.encode(text), crc = CRC(db);
+    const head = new Uint8Array([...u32(0x04034b50), ...u16(20), ...u16(0x0800), ...u16(0), ...dt, ...dd, ...u32(crc), ...u32(db.length), ...u32(db.length), ...u16(nb.length), ...u16(0), ...nb]);
+    parts.push(head, db);
+    cd.push(new Uint8Array([...u32(0x02014b50), ...u16(20), ...u16(20), ...u16(0x0800), ...u16(0), ...dt, ...dd, ...u32(crc), ...u32(db.length), ...u32(db.length), ...u16(nb.length), ...u16(0), ...u16(0), ...u16(0), ...u16(0), ...u32(0), ...u32(off), ...nb]));
+    off += head.length + db.length;
+  }
+  const cdLen = cd.reduce((a, b) => a + b.length, 0);
+  const end = new Uint8Array([...u32(0x06054b50), ...u16(0), ...u16(0), ...u16(files.length), ...u16(files.length), ...u32(cdLen), ...u32(off), ...u16(0)]);
+  return new Blob([...parts, ...cd, end], { type: 'application/zip' });
+}
+function exportZip() {
+  const used = new Set(); const files = [...S.notes.values()].map(n => { let base = n.path || safeName(n.title); let name = base + '.md', k = 2; while (used.has(name)) name = `${base} ${k++}.md`; used.add(name); return [`ABM Second Brain/${name}`, n.body]; });
+  download(`abm-second-brain-${todayISO()}.zip`, makeZip(files)); toast(`Đã xuất ${files.length} file .md`);
+}
+async function importFiles(fileList) {
+  const files = [...fileList].filter(f => /\.(md|markdown|txt)$/i.test(f.name)); if (!files.length) return toast('Không có file .md nào.');
+  let added = 0, updated = 0;
+  for (const f of files) {
+    const text = await f.text(); const relp = (f.webkitRelativePath || f.name).replace(/\.(md|markdown|txt)$/i, ''); const path = relp.split('/').slice(1).join('/') || relp;
+    const title = path.split('/').pop(); const ex = findByTitle(title);
+    if (ex) { ex.body = text; ex.path = path; ex.updated = Date.now(); await DB.put(ex); updated++; }
+    else { const n = { id: uid(), title, body: text, path, created: f.lastModified || Date.now(), updated: f.lastModified || Date.now() }; S.notes.set(n.id, n); await DB.put(n); added++; }
+    reindex();
+  }
+  render(); toast(`Đã nhập: ${added} mới, ${updated} cập nhật`);
+}
+async function importJson(file) {
+  try { const j = JSON.parse(await file.text()); if (!Array.isArray(j.notes)) throw 0; for (const n of j.notes) { if (!n.id || typeof n.body !== 'string') continue; S.notes.set(n.id, { ...n, title: n.title || 'Không tiêu đề' }); await DB.put(S.notes.get(n.id)); } reindex(); render(); toast(`Đã khôi phục ${j.notes.length} ghi chú`); } catch { toast('File sao lưu không hợp lệ'); }
+}
+async function wipe() { if (!confirm('Xóa TOÀN BỘ ghi chú trên trình duyệt này? Hãy xuất sao lưu trước. Không thể hoàn tác.')) return; await DB.clear(); S.notes.clear(); reindex(); localStorage.removeItem('abm-sb-seeded'); location.hash = '#/view/home'; render(); toast('Đã xóa toàn bộ'); }
+
+/* ---------------- Theme ---------------- */
+function toggleTheme() { const r = document.documentElement; const dark = r.dataset.theme === 'dark' || (!r.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches); r.dataset.theme = dark ? 'light' : 'dark'; localStorage.setItem('abm-sb-theme', r.dataset.theme); if (S.view === 'graph') initGraph(); }
+(() => { const t = localStorage.getItem('abm-sb-theme'); if (t) document.documentElement.dataset.theme = t; })();
+
+/* ---------------- Seed (dữ liệu giả lập để trải nghiệm) ---------------- */
+async function seed(force = false) {
+  if (!force && (localStorage.getItem('abm-sb-seeded') || S.notes.size)) return;
+  const d = k => todayISO(new Date(Date.now() + k * 86400000));
+  const N = [
+    ['Bắt đầu tại đây', `---
+loai: ghi-chu
+muc_do: xanh
+the: huong-dan
+---
+# Não bộ thứ hai cho Lãnh đạo — bản mẫu
+
+Đây là **nền tảng ghi chú liên kết chạy trên trình duyệt**, lấy cảm hứng từ Obsidian nhưng **không cần cài đặt**, mở là dùng trên máy tính lẫn điện thoại. Mọi dữ liệu nằm trong trình duyệt của Sếp.
+
+## Khác gì Obsidian?
+- Giữ lại lõi: Markdown thuần, liên kết hai chiều \`[[ ]]\`, thẻ, tìm kiếm, sơ đồ liên kết, mẫu, xuất/nhập file .md tương thích Obsidian.
+- Bổ sung lớp **lãnh đạo – doanh nghiệp**: [[Tổng quan lãnh đạo]], Sổ quyết định, Việc cần làm gom tự động, Mục tiêu (OKR), Biên bản họp, SOP/Playbook, phân loại dữ liệu Xanh–Vàng–Đỏ, đóng gói ngữ cảnh cho A.I.
+
+## Thử ngay trong 3 phút
+1. Nhấn **Ctrl K** và gõ tên bất kỳ để tìm hoặc tạo ghi chú.
+2. Mở [[Quyết định — Chọn nền tảng Second Brain cho ABM]] để xem một quyết định được ghi đúng chuẩn.
+3. Vào **Việc cần làm** ở menu trái: mọi dòng \`- [ ]\` trong tất cả ghi chú được gom về một chỗ.
+4. Nhấn **Hỏi A.I** ở ghi chú bất kỳ để đóng gói ngữ cảnh và dán vào Claude / ChatGPT.
+
+## Việc mẫu
+- [ ] Đọc xong hướng dẫn này @Sếp 📅 ${d(0)}
+- [x] Mở bản mẫu lần đầu
+
+#huong-dan #second-brain`],
+    ['Tổng quan lãnh đạo', `---
+loai: ghi-chu
+muc_do: xanh
+---
+# Tổng quan lãnh đạo
+
+Nền tảng tổ chức tri thức theo **5 lớp** mà một CEO cần nhìn thấy mỗi sáng:
+
+| Lớp | Câu hỏi trả lời | Ở đâu |
+|---|---|---|
+| Mục tiêu | Chúng ta đang đi đâu, đến đâu rồi? | Menu Mục tiêu |
+| Quyết định | Đã chốt gì, vì sao, bao giờ xem lại? | Sổ quyết định |
+| Việc | Ai làm gì, hạn nào, cái gì quá hạn? | Việc cần làm |
+| Quy trình | Cách làm đã chuẩn hóa chưa, ai sở hữu? | SOP / Playbook |
+| Tri thức | Bài học, ghi chú, liên kết | Tất cả ghi chú · Sơ đồ |
+
+> Nguyên tắc: **Brain First – A.I Second**. Nền tảng không thay Sếp nghĩ; nó giữ cho bối cảnh luôn sẵn sàng để Sếp và A.I làm việc trên cùng một sự thật.
+
+Liên quan: [[Mục tiêu — Q4: Ra mắt nền tảng Não bộ thứ hai]] · [[SOP — Rà soát tuần của CEO]] · [[Dự án — Nền tảng Não bộ thứ hai]]`],
+    ['Quyết định — Chọn nền tảng Second Brain cho ABM', `---
+loai: quyet-dinh
+trang_thai: da-chot
+muc_do: vang
+nguoi_quyet: Sếp
+ngay: ${d(-3)}
+ra_soat: ${d(4)}
+---
+## Bối cảnh
+Obsidian mạnh nhưng phải cài trên từng máy, học viên và đội ngũ ngại cài, đồng bộ nhiều máy tốn phí. Cần một lựa chọn mở là dùng, có lớp lãnh đạo.
+
+## Phương án đã cân nhắc
+| Phương án | Ưu | Nhược | Chi phí / Rủi ro |
+|---|---|---|---|
+| Obsidian + Sync | Mạnh, cộng đồng lớn | Phải cài, phí sync, không có lớp quản trị | 8–10 USD/người/tháng |
+| Notion | Cộng tác tốt | Khóa dữ liệu, chậm, không offline thật | Phụ thuộc nhà cung cấp |
+| Nền tảng web riêng (bản mẫu này) | Không cài, dữ liệu .md, tùy biến cho lãnh đạo | Phải tự phát triển đồng bộ & phân quyền | Thời gian R&D |
+
+## Quyết định
+**Chọn:** dựng nền tảng web riêng, giai đoạn 1 chạy cục bộ trên trình duyệt, giai đoạn 2 thêm đồng bộ và phân quyền.
+**Lý do:** giữ dữ liệu ở định dạng mở (.md), không cài đặt, kiểm soát được Ranh giới Đỏ.
+
+## Giả định & Điều kiện đảo ngược
+- Đúng nếu: học viên mở link là dùng được trong 3 phút.
+- Xem lại ngay khi: nhu cầu cộng tác đa người vượt quá 30% người dùng.
+
+## Việc tiếp theo
+- [x] Dựng bản mẫu 1 file @ABM 📅 ${d(-1)}
+- [ ] Thử nghiệm với 5 học viên lớp CEO @Vận-hành 📅 ${d(5)}
+- [ ] Thu phản hồi và quyết định giai đoạn 2 @Sếp 📅 ${d(14)}
+
+Liên quan: [[Dự án — Nền tảng Não bộ thứ hai]] · #quyet-dinh #second-brain`],
+    ['Quyết định — Tạm dừng kênh quảng cáo B', `---
+loai: quyet-dinh
+trang_thai: cho-duyet
+muc_do: do
+nguoi_quyet: Sếp
+ngay: ${d(-1)}
+ra_soat: ${d(-2)}
+---
+## Bối cảnh
+(Dữ liệu giả lập, mức Đỏ — ghi chú này **không bao giờ** được đưa vào gói ngữ cảnh A.I.)
+
+## Quyết định
+Chờ Sếp duyệt.
+
+- [ ] Xem số liệu 30 ngày @Tài-chính 📅 ${d(-1)}
+
+#quyet-dinh`],
+    ['Họp ' + fmtDate(d(-2)) + ' — Giao ban tuần', `---
+loai: hop
+ngay: ${d(-2)}
+muc_do: vang
+thanh_phan: Sếp, Vận hành, Đào tạo
+---
+## Mục tiêu cuộc họp
+Chốt kế hoạch thử nghiệm nền tảng Não bộ thứ hai với lớp CEO.
+
+## Nội dung chính
+- Bản mẫu đã chạy được trên điện thoại, không cần cài.
+- Cần bộ mẫu ghi chú cho lãnh đạo: quyết định, họp, OKR, SOP.
+
+## Quyết định đã chốt
+- Thử nghiệm với 5 học viên, thu phản hồi trong 2 tuần → xem [[Quyết định — Chọn nền tảng Second Brain cho ABM]]
+
+## Việc cần làm (ai · làm gì · hạn)
+- [ ] Soạn hướng dẫn 1 trang cho học viên @Đào-tạo 📅 ${d(3)}
+- [ ] Quay video 90 giây giới thiệu @Truyền-thông 📅 ${d(6)}
+- [x] Chuẩn bị dữ liệu mẫu @ABM 📅 ${d(-1)}
+
+## Lần sau
+- Ngày: ${fmtDate(d(5))} · Chủ đề: phản hồi học viên
+
+#hop`],
+    ['Mục tiêu — Q4: Ra mắt nền tảng Não bộ thứ hai', `---
+loai: muc-tieu
+trang_thai: dang-lam
+chu_so_huu: Sếp
+tien_do: 35
+ngay: ${d(-20)}
+han: ${d(60)}
+---
+## Mục tiêu (Objective)
+Mỗi học viên lớp CEO rời khóa học với một Não bộ thứ hai đang hoạt động.
+
+## Kết quả then chốt (Key Results)
+| KR | Hiện tại | Mục tiêu | Chủ trì |
+|---|---|---|---|
+| KR1: Học viên dùng nền tảng sau 30 ngày | 0% | 60% | Đào tạo |
+| KR2: Số ghi chú trung bình / học viên | 0 | 50 | Vận hành |
+| KR3: Thời gian lên bản dùng được | — | < 3 phút | ABM |
+
+## Sáng kiến / Việc cần làm
+- [x] Bản mẫu chạy trên trình duyệt @ABM 📅 ${d(-1)}
+- [ ] Bộ mẫu ghi chú lãnh đạo v1 @Đào-tạo 📅 ${d(7)}
+- [ ] Tích hợp đồng bộ đám mây (giai đoạn 2) @ABM 📅 ${d(45)}
+
+## Nhật ký tiến độ
+- ${fmtDate(d(-20))}: khởi tạo.
+- ${fmtDate(d(-1))}: bản mẫu hoàn thành → 35%.
+
+Liên quan: [[Dự án — Nền tảng Não bộ thứ hai]] · #muc-tieu`],
+    ['Mục tiêu — Q4: Doanh thu Inhouse', `---
+loai: muc-tieu
+trang_thai: dang-lam
+chu_so_huu: Kinh doanh
+tien_do: 60
+han: ${d(62)}
+muc_do: vang
+---
+## Mục tiêu (Objective)
+(Số liệu giả lập) Tăng trưởng chương trình Inhouse cho SMEs.
+
+## Kết quả then chốt
+| KR | Hiện tại | Mục tiêu |
+|---|---|---|
+| Số doanh nghiệp ký mới | 6 | 10 |
+
+- [ ] Gửi đề xuất cho 3 khách đang nóng @Kinh-doanh 📅 ${d(2)}
+
+#muc-tieu`],
+    ['SOP — Rà soát tuần của CEO', `---
+loai: sop
+trang_thai: da-chot
+chu_so_huu: Sếp
+phien_ban: 1.0
+muc_do: xanh
+---
+## Mục đích & Phạm vi
+Giữ cho mục tiêu, quyết định và việc không trôi. Dùng mỗi sáng thứ Hai, 30 phút. Không dùng thay họp giao ban.
+
+## Vai trò
+| Vai | Người / Vai số | Trách nhiệm |
+|---|---|---|
+| Thực hiện | CEO | Rà soát, chốt ưu tiên |
+| Hỗ trợ | Trợ lý A.I | Tóm tắt, gom việc quá hạn |
+
+## Các bước
+1. **Mở Tổng quan** — nhìn việc quá hạn, quyết định chờ duyệt, tiến độ mục tiêu.
+2. **Tạo "Rà soát tuần"** từ mẫu — ghi thắng lợi, chưa đạt, số liệu.
+3. **Hỏi A.I** với ngữ cảnh "Mục tiêu + Việc đang mở" — lấy 3 rủi ro.
+4. **Chốt 3 ưu tiên tuần tới** — mỗi ưu tiên có người và hạn.
+5. **Dọn Hộp thu nhận** về 0.
+
+## Tiêu chí đạt
+- [ ] Không còn việc quá hạn không có chủ.
+- [ ] Mọi quyết định đến hạn rà soát đã có kết luận.
+
+## Ranh giới Đỏ
+- KHÔNG đưa ghi chú mức Đỏ vào A.I — vì chứa dữ liệu nhân sự / tài chính nhạy cảm.
+
+#sop #ra-soat-tuan`],
+    ['Dự án — Nền tảng Não bộ thứ hai', `---
+loai: du-an
+trang_thai: dang-lam
+chu_so_huu: ABM
+tien_do: 40
+muc_do: xanh
+---
+## Bài toán & Giá trị
+- Bài toán: lãnh đạo cần một nơi giữ bối cảnh (mục tiêu, quyết định, việc, quy trình) mà không phải cài phần mềm nặng.
+- Giá trị: giảm thời gian "nhớ lại", tăng chất lượng quyết định, A.I luôn có ngữ cảnh đúng.
+- Thước đo: thời gian lên bản dùng được < 3 phút; 60% học viên còn dùng sau 30 ngày.
+
+## Phạm vi
+- Trong: ghi chú Markdown, liên kết, sơ đồ, mẫu lãnh đạo, gom việc, sổ quyết định, OKR, xuất/nhập .md, đóng gói A.I.
+- Ngoài (giai đoạn 2): đồng bộ đám mây, nhiều người dùng, phân quyền, gọi A.I trực tiếp, kết nối Drive/Notion.
+
+## Mốc & Việc
+- [x] Mốc 1 — Bản mẫu 1 file chạy trên GitHub Pages @ABM 📅 ${d(-1)}
+- [ ] Mốc 2 — Thử nghiệm 5 học viên @Vận-hành 📅 ${d(14)}
+- [ ] Mốc 3 — Quyết định kiến trúc giai đoạn 2 @Sếp 📅 ${d(21)}
+
+## Rủi ro & Kiểm soát
+| Rủi ro | Khả năng | Tác động | Biện pháp |
+|---|---|---|---|
+| Mất dữ liệu khi xóa cache trình duyệt | Trung bình | Cao | Nhắc xuất .zip hằng tuần; giai đoạn 2 đồng bộ |
+| Người dùng không quen Markdown | Cao | Trung bình | Mẫu sẵn, chế độ Xem, hướng dẫn 1 trang |
+
+## Liên quan
+- Quyết định: [[Quyết định — Chọn nền tảng Second Brain cho ABM]]
+- Mục tiêu: [[Mục tiêu — Q4: Ra mắt nền tảng Não bộ thứ hai]]
+- SOP: [[SOP — Rà soát tuần của CEO]]
+- Framework: [[08 Yếu tố triển khai A.I]]
+
+#du-an #second-brain`],
+    ['08 Yếu tố triển khai A.I', `---
+loai: ghi-chu
+muc_do: xanh
+the: framework
+---
+# 08 Yếu tố triển khai A.I (ABM)
+
+Bài toán · Dữ liệu · Công cụ/Model · Skill · Workflow · Output · Tương tác · Con người/Văn hóa.
+
+Áp vào nền tảng này:
+- **Bài toán**: lãnh đạo mất bối cảnh giữa các cuộc họp, quyết định và việc.
+- **Dữ liệu**: ghi chú Markdown của chính Sếp, phân loại Xanh–Vàng–Đỏ.
+- **Công cụ/Model**: trình duyệt + công cụ A.I Sếp đang dùng.
+- **Skill**: mẫu ghi chú + prompt đóng gói sẵn.
+- **Workflow**: [[SOP — Rà soát tuần của CEO]].
+- **Output**: Tổng quan, sổ quyết định, danh sách việc.
+- **Tương tác**: Ctrl K, liên kết hai chiều, sơ đồ.
+- **Con người/Văn hóa**: ghi trước – quyết sau – rà soát định kỳ.
+
+Xem thêm [[Tam Giác Sức Mạnh A.I]]. #framework`],
+    ['Tam Giác Sức Mạnh A.I', `---
+loai: ghi-chu
+muc_do: xanh
+the: framework
+---
+# Tam Giác Sức Mạnh A.I
+
+Lõi trung tâm: **Tư duy con người**. Ba đỉnh: **Kiến thức nền tảng · Thành thạo công cụ · Quy trình tối ưu**.
+
+Nền tảng Não bộ thứ hai phục vụ đỉnh "Quy trình tối ưu" và nuôi "Kiến thức nền tảng" bằng tri thức tích lũy mỗi ngày. Liên kết: [[08 Yếu tố triển khai A.I]] · [[Tổng quan lãnh đạo]]
+
+#framework`],
+    ['Ý tưởng: bộ mẫu cho trưởng phòng', `---
+loai: thu-nhan
+ngay: ${d(0)}
+---
+Ngoài bộ mẫu cho CEO, cần bộ mẫu cho trưởng phòng: báo cáo tuần lên CEO, đề xuất xin nguồn lực, 1:1 với nhân viên. Chưa phân loại — xử lý trong Hộp thu nhận.`],
+    [`Nhật ký ${d(0)}`, `---
+loai: nhat-ky
+ngay: ${d(0)}
+---
+## 3 việc quan trọng nhất hôm nay
+- [ ] Trải nghiệm bản mẫu Não bộ thứ hai @Sếp 📅 ${d(0)}
+- [ ] Quyết định có chạy thử với lớp CEO không @Sếp 📅 ${d(1)}
+- [ ] 
+
+## Ghi nhanh
+- Obsidian hay nhưng nặng → thử bản web này, xem [[Bắt đầu tại đây]].
+
+## Quyết định / Bài học
+- 
+
+#nhat-ky`],
+  ];
+  for (const [title, body] of N) { const n = { id: uid(), title, body, created: Date.now() - Math.random() * 5 * 86400000, updated: Date.now() - Math.random() * 3 * 86400000 }; S.notes.set(n.id, n); await DB.put(n); }
+  reindex(); localStorage.setItem('abm-sb-seeded', '1');
+}
+
+/* ---------------- Events ---------------- */
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-cmd],[data-go],[data-wl],[data-tag],[data-mode],[data-retype],[data-del],[data-hd],.it');
+  if (!t) return;
+  if (t.dataset.cmd) { e.preventDefault(); runCmd(t.dataset.cmd); }
+  else if (t.dataset.go) location.hash = t.dataset.go;
+  else if (t.dataset.wl != null) { e.preventDefault(); openByTitle(t.dataset.wl); }
+  else if (t.dataset.tag) { e.preventDefault(); location.hash = '#/tag/' + encodeURIComponent(t.dataset.tag); }
+  else if (t.dataset.mode) setMode(t.dataset.mode);
+  else if (t.dataset.retype) { const [id, ty] = t.dataset.retype.split(':'); retype(id, ty); }
+  else if (t.dataset.del) deleteNote(t.dataset.del);
+  else if (t.dataset.hd) { const h = $$('#prev h1,#prev h2,#prev h3').find(x => x.textContent === t.dataset.hd); h?.scrollIntoView({ behavior: 'smooth', block: 'start' }); if (S.mode === 'edit') setMode('split'); }
+  else if (t.classList.contains('it')) palRun(+t.dataset.i);
+});
+document.addEventListener('change', e => {
+  const cb = e.target; if (cb.matches('input[data-task]')) { const [id, line] = cb.dataset.task.split(':'); toggleTask(id, +line); }
+  if (cb.matches('#prev input[type=checkbox][data-line]')) { const n = S.notes.get(S.cur); toggleTask(n.id, +cb.dataset.line).then(() => { const ta = $('#ta'); if (ta) ta.value = n.body; }); }
+});
+function runCmd(c) {
+  if (c === 'new') return createNote();
+  if (c.startsWith('new:')) return newFromTemplate(c.slice(4));
+  if (c === 'capture') return quickCapture();
+  if (c === 'ai') return aiPack();
+  if (c === 'tplMenu') return tplMenu();
+  if (c === 'exportMd') return exportMd();
+  if (c === 'exportZip') return exportZip();
+  if (c === 'exportJson') return exportJson();
+  if (c === 'importDir') return $('#fileDir').click();
+  if (c === 'importMd') return $('#fileMd').click();
+  if (c === 'importJson') return $('#fileJson').click();
+  if (c === 'del') return deleteNote(S.cur);
+  if (c === 'wipe') return wipe();
+  if (c === 'seed') return seed(true).then(() => { render(); toast('Đã nạp dữ liệu mẫu'); });
+}
+$('#fileDir').addEventListener('change', e => importFiles(e.target.files));
+$('#fileMd').addEventListener('change', e => importFiles(e.target.files));
+$('#fileJson').addEventListener('change', e => e.target.files[0] && importJson(e.target.files[0]));
+$('#btnNew').addEventListener('click', () => createNote());
+$('#btnCapture').addEventListener('click', () => quickCapture());
+$('#btnSearch').addEventListener('click', () => openPal());
+$('#btnTheme').addEventListener('click', toggleTheme);
+$('#btnRp').addEventListener('click', () => { if (S.view !== 'note') return toast('Mở một ghi chú để xem thuộc tính & liên kết'); $('#rp').classList.toggle('open'); });
+$('#burger').addEventListener('click', () => $('#sb').classList.toggle('open'));
+$('#filter').addEventListener('input', e => { S.filter = e.target.value; renderList(); });
+$('#sortBtn').addEventListener('click', () => { S.sort = S.sort === 'title' ? 'updated' : 'title'; renderList(); });
+$('#palIn').addEventListener('input', palSearch);
+$('#palIn').addEventListener('keydown', e => {
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); PAL.idx = (PAL.idx + (e.key === 'ArrowDown' ? 1 : -1) + PAL.items.length) % PAL.items.length; $$('#palRes .it').forEach((el, i) => el.classList.toggle('on', i === PAL.idx)); $$('#palRes .it')[PAL.idx]?.scrollIntoView({ block: 'nearest' }); }
+  if (e.key === 'Enter') palRun(PAL.idx);
+  if (e.key === 'Escape') closePal();
+});
+$('#palOv').addEventListener('click', e => { if (e.target === e.currentTarget) closePal(); });
+$('#modOv').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+document.addEventListener('keydown', e => {
+  const mod = e.ctrlKey || e.metaKey;
+  if (mod && e.key.toLowerCase() === 'k') { e.preventDefault(); openPal(); }
+  else if (mod && e.key.toLowerCase() === 'n' && !e.shiftKey) { e.preventDefault(); createNote(); }
+  else if (mod && e.key.toLowerCase() === 'e' && S.view === 'note') { e.preventDefault(); setMode(S.mode === 'edit' ? 'prev' : S.mode === 'prev' ? 'split' : 'edit'); }
+  else if (mod && e.key.toLowerCase() === 's') { e.preventDefault(); const n = S.cur && S.notes.get(S.cur); if (n) { clearTimeout(saveT); DB.put(n).then(() => toast('Đã lưu')); } }
+  else if (e.key === 'Escape') { closePal(); closeModal(); }
+});
+// Nhắc sao lưu nếu > 7 ngày chưa xuất
+function backupNudge() { const last = +localStorage.getItem('abm-sb-lastExport') || 0; if (S.notes.size > 15 && Date.now() - last > 7 * 86400000) setTimeout(() => toast('Gợi ý: xuất sao lưu .zip ở mục Dữ liệu & Cài đặt (đã hơn 7 ngày).', 5000), 4000); }
+const _exportZip = exportZip; exportZip = function () { _exportZip(); localStorage.setItem('abm-sb-lastExport', String(Date.now())); };
+
+/* ---------------- Init ---------------- */
+(async () => {
+  await DB.open();
+  for (const n of await DB.all()) S.notes.set(n.id, n);
+  reindex(); await seed(); 
+  route(); backupNudge();
+  if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('/demo/second-brain/sw.js').catch(() => {});
+})();
+</script>
+</body>
+</html>
