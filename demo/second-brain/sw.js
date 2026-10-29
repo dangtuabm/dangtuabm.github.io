@@ -1,5 +1,5 @@
 // Service worker: cache app shell so the Second Brain works offline (PWA).
-const CACHE = 'abm-brain-v1';
+const CACHE = 'abm-brain-v2';
 const SHELL = ['/demo/second-brain/', '/demo/second-brain/index.html', '/demo/second-brain/manifest.json', '/brand/icon-512.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

@@ -1,6 +1,6 @@
 # ABM Second Brain — Não bộ thứ hai cho Lãnh đạo (bản mẫu)
 
-Nền tảng ghi chú liên kết lấy cảm hứng từ Obsidian, **chạy ngay trên trình duyệt, không cần cài đặt**, một file HTML, không phụ thuộc thư viện ngoài, phát hành trên GitHub Pages tại `/demo/second-brain/`.
+Nền tảng ghi chú liên kết lấy cảm hứng từ Obsidian, **chạy ngay trên trình duyệt, không cần cài đặt**, một file HTML không phụ thuộc thư viện ngoài, phát hành tại `/demo/second-brain/`. Đã triển khai đủ 3 giai đoạn: cục bộ → đồng bộ đa thiết bị → nhóm, phân quyền, A.I và Nhân sự số.
 
 Triết lý: **Brain First – A.I Second**. Nền tảng giữ bối cảnh (mục tiêu · quyết định · việc · quy trình · tri thức) để Sếp và A.I làm việc trên cùng một sự thật.
 
@@ -37,26 +37,46 @@ Triết lý: **Brain First – A.I Second**. Nền tảng giữ bối cảnh (m�
 | **Nhập vault Obsidian** | Chọn thư mục vault hoặc nhiều file .md; trùng tiêu đề thì cập nhật |
 | **Sao lưu** | Xuất .zip (.md) và .json; nhắc sao lưu khi quá 7 ngày |
 
-## 3. Kiến trúc
+## 3. Giai đoạn 2 — Không gian & đồng bộ (đã làm)
 
-- **Giai đoạn 1 (bản này)**: 1 file `index.html` ~100 KB + `sw.js` + `manifest.json`. Dữ liệu ở IndexedDB của trình duyệt, không có máy chủ, không gửi dữ liệu đi đâu. Phù hợp dùng cá nhân, demo, lớp học.
-- **Giai đoạn 2 (đề xuất)**: thêm đồng bộ (Google Drive hoặc kho Git của người dùng, vẫn là file .md), đăng nhập, nhiều thiết bị. Vẫn giữ nguyên định dạng dữ liệu nên bản 1 nâng cấp được, không mất gì.
-- **Giai đoạn 3 (đề xuất)**: không gian nhóm, phân quyền theo mức Xanh – Vàng – Đỏ cưỡng chế ở tầng lưu trữ, gọi A.I trực tiếp với khóa của doanh nghiệp, kết nối Notion / Drive / lịch, Nhân sự số đọc ghi chú và trả kết quả về đúng ghi chú.
+Nhiều **không gian** trong một ứng dụng, mỗi không gian chọn một cách lưu:
 
-## 4. Cú pháp cần nhớ
+| Cách lưu | Cơ chế | Cần gì |
+|---|---|---|
+| Chỉ máy này | IndexedDB | không |
+| Kho GitHub | mỗi ghi chú = file .md, Contents API, có lịch sử phiên bản | fine-grained token (Contents: read/write) |
+| Google Drive | file .md trong thư mục "ABM Second Brain — <tên>", phạm vi `drive.file` | OAuth Client ID |
+| Thư mục trên máy | File System Access API, ghi thẳng vào vault Obsidian | Chrome / Edge máy tính |
+| Máy chủ ABM | API PHP (`/api/brain`), xem `api/brain/README.md` | tài khoản ABM |
+
+Quy tắc: ghi chú **mức Đỏ mặc định không đồng bộ**; xung đột hai bên cùng sửa → giữ bản của Sếp, tạo bản sao "(bản máy chủ …)" để tự hợp nhất, không mất chữ; xóa được lan truyền bằng bia mộ; tự đồng bộ mỗi 3 phút và khi quay lại tab.
+
+## 4. Giai đoạn 3 — Nhóm, phân quyền, A.I, Nhân sự số (đã làm)
+
+- **Không gian nhóm** trên máy chủ ABM: vai Chủ / Quản trị / Biên tập / Chỉ xem; mức Đỏ chỉ chủ, quản trị và tác giả đọc được — **máy chủ lọc**, không phải giao diện; nhật ký kiểm toán ai làm gì lúc nào.
+- **A.I trực tiếp**: Cổng A.I của ABM (khóa ở máy chủ) hoặc khóa riêng (Anthropic / OpenAI / Gemini). "Hỏi A.I với ngữ cảnh" trả lời ngay trong ứng dụng, lưu thành ghi chú chờ duyệt hoặc chèn vào ghi chú.
+- **Nhân sự số**: ghi chú loại `nhan-su-so` khai Vai trò · Nhiệm vụ · Phạm vi ngữ cảnh · Định dạng đầu ra · Điểm con người duyệt. Bấm **Chạy** → kết quả thành ghi chú gắn nhãn `[A.I Generated — Tên — thời gian]`, trạng thái **Chờ duyệt**; Sếp Duyệt hoặc Từ chối. Tổng quan có ô "Kết quả A.I chờ duyệt".
+- **Ranh giới Đỏ cưỡng chế**: mức Đỏ không bao giờ vào ngữ cảnh A.I; kết quả A.I thừa kế mức cao nhất của đầu vào.
+
+## 5. Chưa làm (đề xuất tiếp)
+- Chạy Nhân sự số theo lịch tự động (cần tiến trình nền ở máy chủ).
+- Kết nối Notion (API Notion không cho gọi từ trình duyệt, cần máy chủ trung gian).
+- Đồng bộ thời gian thực (hiện là 3 phút hoặc bấm tay).
+
+## 6. Cú pháp cần nhớ
 
 ```
 [[Tên ghi chú]]              liên kết hai chiều
 #the-cua-sep                 thẻ
 - [ ] Việc @Tên 📅 2026-11-05  việc có người và hạn
 ---                          thuộc tính ở đầu ghi chú:
-loai: quyet-dinh | hop | muc-tieu | sop | du-an | nhat-ky | thu-nhan | ghi-chu
+loai: quyet-dinh | hop | muc-tieu | sop | du-an | nhat-ky | thu-nhan | nhan-su-so | ghi-chu
 muc_do: xanh | vang | do
 trang_thai: moi | dang-lam | cho-duyet | da-chot | hoan-thanh | tam-dung | luu-tru
 tien_do: 0-100 · ra_soat: YYYY-MM-DD · han: YYYY-MM-DD · chu_so_huu: Tên
 ---
 ```
 
-## 5. Phím tắt
+## 7. Phím tắt
 
 Ctrl/⌘ K tìm & lệnh · Ctrl/⌘ N ghi chú mới · Ctrl/⌘ E đổi chế độ · Ctrl/⌘ S lưu · Esc đóng.
