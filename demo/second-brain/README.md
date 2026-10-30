@@ -12,7 +12,7 @@ Triết lý: **Brain First – A.I Second**. Nền tảng giữ bối cảnh (m�
 | Liên kết | `[[wikilink]]`, backlink, alias | Có, tạo ghi chú mới khi bấm liên kết chưa tồn tại |
 | Thẻ | `#tag`, frontmatter | Có, trang Thẻ và lọc theo thẻ |
 | Tìm kiếm | Quick switcher, command palette | Ctrl K: tìm tiêu đề + nội dung, lệnh, tạo mới ngay từ ô tìm |
-| Sơ đồ | Graph view | Canvas lực, tô màu theo loại ghi chú, kéo, phóng, bấm mở |
+| Sơ đồ | Graph view (đồ thị lực, quay quanh file) | **Bản đồ tri thức**: tri thức quay quanh câu hỏi / mục tiêu / người; 3 vòng Trực tiếp · Liên quan · Nền; 3 chế độ Hội tụ · Toàn cảnh · Dòng thời gian; viền đỏ = quá hạn/cần rà soát; thẻ hành động và nút Hỏi A.I về bản đồ |
 | Mẫu | Templates plugin | 8 mẫu lãnh đạo có sẵn |
 | Nhật ký | Daily notes | Hôm nay, Rà soát tuần |
 | Thuộc tính | Properties (frontmatter) | Bảng thuộc tính bên phải, sửa là cập nhật frontmatter |

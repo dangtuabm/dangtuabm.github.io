@@ -223,6 +223,22 @@ canvas#graph{width:100%;height:100%;display:block;border-radius:var(--r);backgro
 .aibar svg{width:18px;height:18px;flex:none}
 .ansbox{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px 16px;max-height:50vh;overflow:auto}
 @media (max-width:860px){.spsel{max-width:120px}}
+
+.mapbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:4px 0 12px}
+.mapbar input{flex:1 1 240px;border:1px solid var(--line);background:var(--panel);border-radius:9px;height:36px;padding:0 12px;min-width:0}
+.mapbar select{border:1px solid var(--line);background:var(--panel);border-radius:9px;height:36px;padding:0 10px;max-width:260px}
+.mapwrap{position:relative;height:calc(100vh - var(--hdr-h) - 150px);min-height:460px}
+.maplegend{position:absolute;left:12px;bottom:12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:11.5px;display:flex;flex-wrap:wrap;gap:4px 10px;max-width:calc(100% - 24px)}
+.maplegend span{display:inline-flex;align-items:center;gap:5px}
+.mapstat{position:absolute;left:12px;top:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:5px 10px;font-size:12px}
+.mapcard{position:absolute;right:12px;top:12px;width:min(340px,calc(100% - 24px));background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow-up);padding:14px 16px;font-size:13.5px;max-height:calc(100% - 24px);overflow:auto}
+.mapcard h3{font-size:15px;margin:6px 0 6px}
+.mapcard .mc-h{display:flex;align-items:center;gap:8px}.mapcard .mc-h .x{margin-left:auto}
+.mapcard .mc-alert{background:#fde8e8;color:var(--red);border-radius:8px;padding:6px 10px;font-size:12.5px;font-weight:600;margin-bottom:8px}
+:root[data-theme="dark"] .mapcard .mc-alert{background:#3a1515}
+.mapcard .mc-facts{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.mapcard .mc-tasks .row{font-size:13px;padding:5px 0}
+@media (max-width:860px){.mapwrap{height:calc(100vh - var(--hdr-h) - 210px)}.mapcard{left:8px;right:8px;top:auto;bottom:8px;width:auto;max-height:55%}.maplegend{display:none}.mapbar .lbl{display:none}}
 /* ---------- Responsive ---------- */
 @media (max-width:1100px){main.body,main.body.no-rp{grid-template-columns:var(--sb-w) 1fr}aside.rp{position:fixed;right:0;top:var(--hdr-h);bottom:0;width:min(320px,90vw);transform:translateX(100%);transition:.2s;z-index:30;box-shadow:-10px 0 30px #03054822}aside.rp.open{transform:none}}
 @media (max-width:860px){
@@ -796,7 +812,7 @@ function renderNav() {
     { v: 'list/nhan-su-so', l: 'Nhân sự số', i: 'bot', n: cnt('nhan-su-so') },
     { g: 'Tri thức' },
     { v: 'notes', l: 'Tất cả ghi chú', i: 'note', n: S.notes.size },
-    { v: 'graph', l: 'Sơ đồ liên kết', i: 'graph' },
+    { v: 'graph', l: 'Bản đồ tri thức', i: 'graph' },
     { v: 'tags', l: 'Thẻ', i: 'tag' },
     { v: 'data', l: 'Không gian & Cài đặt', i: 'gear' },
   ];
@@ -915,9 +931,6 @@ function viewTag() {
   const t = S.tagFilter; const list = sortedNotes([...S.notes.values()].filter(n => noteTags(n).includes(t)));
   return `<h1>#${esc(t)} <span class="sub">${list.length} ghi chú</span></h1>${list.map(n => `<div class="card" style="margin-bottom:10px"><div class="row"><div class="t">${typePill(noteType(n))} ${noteLink(n)}<div class="hint">${esc(excerpt(n, 140))}</div></div><span class="m">${rel(n.updated)}</span></div></div>`).join('')}`;
 }
-function viewGraph() {
-  return `<h1>Sơ đồ liên kết <span class="sub">${S.notes.size} ghi chú · kéo để di chuyển, lăn chuột để phóng, bấm để mở</span></h1><div class="gwrap"><canvas id="graph"></canvas><div class="legend">${Object.entries(TYPES).map(([k, t]) => `<span><i class="dot" style="background:${t.color}"></i>${t.label}</span>`).join('')}</div></div>`;
-}
 
 /* ---------------- Không gian & Cài đặt ---------------- */
 function viewData() {
@@ -1031,44 +1044,144 @@ function renderRp() {
   $$('[data-fm]', rp).forEach(el => el.addEventListener('change', async () => { await setFmAndSave(n, { [el.dataset.fm]: el.value }); render(); }));
 }
 
-/* ---------------- Graph ---------------- */
-let G = null;
+/* ---------------- Bản đồ tri thức (thay sơ đồ lực) ----------------
+   Nguyên tắc: tri thức quay quanh CÂU HỎI / MỤC TIÊU / NGƯỜI của Sếp, không phải quanh file.
+   Vòng = mức liên quan (Trực tiếp · Liên quan · Nền). Màu = loại. Cỡ = tầm quan trọng.
+   Viền đỏ = có việc quá hạn / đến hạn rà soát. Mờ = lâu không chạm. Bố cục xác định, không nhảy. */
+const MAP = { mode: 'focus', q: '', center: '', sel: null, hover: null, zoom: 1, ox: 0, oy: 0, nodes: [], edges: [], raf: 0, touched: false };
+function viewGraph() {
+  const notes = [...S.notes.values()];
+  const opt = (list, lbl, pre = '') => list.length ? `<optgroup label="${lbl}">${list.map(n => `<option value="${pre}${esc(n.id || n)}" ${MAP.center === pre + (n.id || n) ? 'selected' : ''}>${esc(n.title || n)}</option>`).join('')}</optgroup>` : '';
+  const owners = [...new Set(allTasks().map(t => t.owner).filter(Boolean))].sort();
+  const tagc = {}; notes.forEach(n => noteTags(n).forEach(t => tagc[t] = (tagc[t] || 0) + 1)); const tags = Object.keys(tagc).sort((a, b) => tagc[b] - tagc[a]).slice(0, 15);
+  return `<h1>Bản đồ tri thức <span class="sub">${notes.length} ghi chú · tri thức quay quanh câu hỏi, mục tiêu và việc của Sếp</span></h1>
+  <div class="mapbar">
+    <div class="seg"><button data-mm="focus" class="${MAP.mode === 'focus' ? 'on' : ''}">Hội tụ</button><button data-mm="overview" class="${MAP.mode === 'overview' ? 'on' : ''}">Toàn cảnh</button><button data-mm="time" class="${MAP.mode === 'time' ? 'on' : ''}">Dòng thời gian</button></div>
+    <input id="mapQ" value="${esc(MAP.q)}" placeholder="Gõ câu hỏi hoặc chủ đề… (ví dụ: khách hàng, Q4, nhân sự)" aria-label="Câu hỏi">
+    <select id="mapCenter" aria-label="Tâm bản đồ"><option value="">Tâm: Sếp hôm nay / theo câu hỏi</option>${opt(notes.filter(n => noteType(n) === 'muc-tieu'), 'Mục tiêu')}${opt(notes.filter(n => noteType(n) === 'du-an'), 'Dự án')}${opt(notes.filter(n => noteType(n) === 'quyet-dinh'), 'Quyết định')}${opt(owners, 'Người', '@')}${opt(tags, 'Thẻ', '#')}</select>
+    <button class="btn gold" data-cmd="aiMap" title="Đóng gói các ghi chú đang hiển thị cho A.I">${ic('ai')}<span class="lbl">Hỏi A.I về bản đồ</span></button>
+  </div>
+  <div class="mapwrap"><canvas id="graph"></canvas>
+    <div class="maplegend">${Object.entries(TYPES).map(([k, t]) => `<span><i class="dot" style="background:${t.color}"></i>${t.label}</span>`).join('')}<span><i class="dot" style="background:transparent;border:2px solid var(--red)"></i>quá hạn / cần rà soát</span><span><i class="dot" style="background:#c7cae0"></i>lâu không chạm</span></div>
+    <div class="mapstat" id="mapStat"></div>
+    <aside class="mapcard" id="mapCard" hidden></aside>
+  </div>`;
+}
+function mapImportance(n) { const t = allTasks().filter(x => x.noteId === n.id && !x.done).length; return 1 + Math.min(6, backlinks(n.id).length) * 0.6 + Math.min(4, t) * 0.5 + (Date.now() - n.updated < 7 * 86400000 ? 1 : 0); }
+function mapAlert(n) { const f = noteFm(n); if (f.ra_soat && daysDiff(f.ra_soat) <= 0 && f.trang_thai !== 'hoan-thanh') return true; if (f.han && daysDiff(f.han) < 0 && f.trang_thai !== 'hoan-thanh') return true; return allTasks().some(t => t.noteId === n.id && !t.done && t.due && daysDiff(t.due) < 0); }
+const mapStale = n => Date.now() - n.updated > 60 * 86400000;
+function mapScore(n, toks) { const tl = n.title.toLowerCase(), bl = n.body.toLowerCase(), tags = noteTags(n).map(t => t.toLowerCase()); let s = 0; for (const k of toks) { if (tl.includes(k)) s += 3; if (tags.some(t => t.includes(k))) s += 2; const c = bl.split(k).length - 1; s += Math.min(3, c) * 0.6; } return s; }
+// Chọn tập ghi chú và vòng cho chế độ Hội tụ
+function mapCompute() {
+  const notes = [...S.notes.values()].filter(n => noteType(n) !== 'thu-nhan'); const tasks = allTasks();
+  let center = { kind: 'pseudo', title: 'Sếp hôm nay', sub: 'việc đến hạn · quyết định chờ · mục tiêu đang chạy' }; let rings = [[], [], []];
+  const c = MAP.center; const q = MAP.q.trim().toLowerCase();
+  const linked = n => { const s = new Set(); noteLinks(n).forEach(t => { const x = findByTitle(t); if (x) s.add(x.id); }); backlinks(n.id).forEach(b => s.add(b.id)); return s; };
+  if (c && S.notes.has(c)) { const cn = S.notes.get(c); center = { kind: 'note', note: cn, title: cn.title, sub: TYPES[noteType(cn)].label };
+    const l1 = linked(cn); rings[0] = notes.filter(n => l1.has(n.id)); const l2 = new Set(); rings[0].forEach(n => linked(n).forEach(id => { if (id !== c && !l1.has(id)) l2.add(id); }));
+    const tg = new Set(noteTags(cn)); rings[1] = notes.filter(n => n.id !== c && !l1.has(n.id) && (l2.has(n.id) || noteTags(n).some(t => tg.has(t)))).slice(0, 14);
+    const used = new Set([c, ...rings[0].map(n => n.id), ...rings[1].map(n => n.id)]); rings[2] = sortedNotes(notes.filter(n => !used.has(n.id) && noteType(n) === noteType(cn))).slice(0, 10); }
+  else if (c && c.startsWith('@')) { const o = c.slice(1); center = { kind: 'pseudo', title: '@' + o, sub: 'người phụ trách' };
+    const r1 = new Set(tasks.filter(t => t.owner === o && !t.done).map(t => t.noteId)); rings[0] = notes.filter(n => r1.has(n.id));
+    rings[1] = notes.filter(n => !r1.has(n.id) && (noteFm(n).chu_so_huu === o || noteFm(n).nguoi_quyet === o)).slice(0, 12);
+    const used = new Set([...rings[0], ...rings[1]].map(n => n.id)); rings[2] = sortedNotes(notes.filter(n => !used.has(n.id) && n.body.includes('@' + o))).slice(0, 10); }
+  else if (c && c.startsWith('#')) { const tg = c.slice(1); center = { kind: 'pseudo', title: '#' + tg, sub: 'thẻ' }; rings[0] = notes.filter(n => noteTags(n).includes(tg)).slice(0, 16); const l = new Set(); rings[0].forEach(n => linked(n).forEach(id => l.add(id))); rings[1] = notes.filter(n => l.has(n.id) && !rings[0].includes(n)).slice(0, 14); }
+  else if (q) { const toks = q.split(/\s+/).filter(Boolean); center = { kind: 'pseudo', title: MAP.q.trim(), sub: 'câu hỏi / chủ đề' };
+    const sc = notes.map(n => ({ n, s: mapScore(n, toks) })).filter(x => x.s > 0).sort((a, b) => b.s - a.s || b.n.updated - a.n.updated);
+    rings[0] = sc.slice(0, 8).map(x => x.n); rings[1] = sc.slice(8, 20).map(x => x.n); const used = new Set(sc.slice(0, 20).map(x => x.n.id)); const l = new Set(); rings[0].forEach(n => linked(n).forEach(id => l.add(id))); rings[2] = notes.filter(n => !used.has(n.id) && l.has(n.id)).slice(0, 10); }
+  else { const due = new Set(tasks.filter(t => !t.done && t.due && daysDiff(t.due) <= 0).map(t => t.noteId));
+    rings[0] = notes.filter(n => due.has(n.id) || (noteType(n) === 'quyet-dinh' && (noteFm(n).trang_thai === 'cho-duyet' || (noteFm(n).ra_soat && daysDiff(noteFm(n).ra_soat) <= 7))) || (noteFm(n).nguon === 'ai' && noteFm(n).trang_thai === 'cho-duyet')).slice(0, 10);
+    const u1 = new Set(rings[0].map(n => n.id)); rings[1] = notes.filter(n => !u1.has(n.id) && ['muc-tieu', 'du-an'].includes(noteType(n)) && noteFm(n).trang_thai !== 'hoan-thanh').slice(0, 12);
+    const u2 = new Set([...u1, ...rings[1].map(n => n.id)]); rings[2] = sortedNotes(notes.filter(n => !u2.has(n.id))).slice(0, 12); }
+  return { center, rings };
+}
 function initGraph() {
   const cv = $('#graph'); if (!cv) return; const ctx = cv.getContext('2d');
-  const notes = [...S.notes.values()].slice(0, 400); const idx = new Map(notes.map((n, i) => [n.id, i]));
-  const W = () => cv.clientWidth, H = () => cv.clientHeight;
-  const nodes = notes.map((n, i) => ({ n, x: W() / 2 + Math.cos(i) * 120 + Math.random() * 60, y: H() / 2 + Math.sin(i) * 120 + Math.random() * 60, vx: 0, vy: 0, deg: 0 }));
-  const edges = []; notes.forEach((n, i) => noteLinks(n).forEach(t => { const x = findByTitle(t); if (x && idx.has(x.id) && idx.get(x.id) !== i) { edges.push([i, idx.get(x.id)]); nodes[i].deg++; nodes[idx.get(x.id)].deg++; } }));
-  let zoom = 1, ox = 0, oy = 0, drag = null, pan = null, hover = -1, ticks = 0, raf = 0, touched = false;
-  const fit = () => { if (touched || !nodes.length) return; let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (const p of nodes) { x0 = Math.min(x0, p.x); y0 = Math.min(y0, p.y); x1 = Math.max(x1, p.x); y1 = Math.max(y1, p.y); } const pad = 70; zoom = Math.max(0.3, Math.min(1.6, Math.min(W() / (x1 - x0 + pad * 2), H() / (y1 - y0 + pad * 2)))); ox = W() / 2 - (x0 + x1) / 2 * zoom; oy = H() / 2 - (y0 + y1) / 2 * zoom; };
-  const size = () => { const r = devicePixelRatio || 1; cv.width = W() * r; cv.height = H() * r; ctx.setTransform(r, 0, 0, r, 0, 0); };
-  size(); new ResizeObserver(size).observe(cv);
-  const step = () => {
-    if (ticks++ > 420) return;
-    if (ticks % 10 === 0 || ticks === 420) fit();
-    const k = 0.9;
-    for (let i = 0; i < nodes.length; i++) for (let j = i + 1; j < nodes.length; j++) { const a = nodes[i], b = nodes[j]; let dx = a.x - b.x, dy = a.y - b.y, d2 = dx * dx + dy * dy + 0.01; const f = Math.min(1500 / d2, 30); dx *= f; dy *= f; a.vx += dx; a.vy += dy; b.vx -= dx; b.vy -= dy; }
-    for (const [i, j] of edges) { const a = nodes[i], b = nodes[j]; const dx = b.x - a.x, dy = b.y - a.y; const d = Math.sqrt(dx * dx + dy * dy) + 0.01; const f = (d - 90) * 0.02; a.vx += dx / d * f; a.vy += dy / d * f; b.vx -= dx / d * f; b.vy -= dy / d * f; }
-    for (const p of nodes) { p.vx += (W() / 2 - p.x) * 0.012; p.vy += (H() / 2 - p.y) * 0.012; if (p !== drag) { p.x += p.vx * k; p.y += p.vy * k; } p.vx *= 0.6; p.vy *= 0.6; }
-  };
-  const draw = () => {
-    ctx.clearRect(0, 0, W(), H()); ctx.save(); ctx.translate(ox, oy); ctx.scale(zoom, zoom);
-    const dark = matchMedia('(prefers-color-scheme: dark)').matches && document.documentElement.dataset.theme !== 'light' || document.documentElement.dataset.theme === 'dark';
-    ctx.strokeStyle = dark ? '#3a3f6a' : '#cfd3e6'; ctx.lineWidth = 1 / zoom;
-    for (const [i, j] of edges) { ctx.beginPath(); ctx.moveTo(nodes[i].x, nodes[i].y); ctx.lineTo(nodes[j].x, nodes[j].y); ctx.stroke(); }
-    ctx.font = `${12 / zoom}px ${getComputedStyle(document.body).fontFamily}`; ctx.textAlign = 'center';
-    nodes.forEach((p, i) => { const r = 4 + Math.min(10, p.deg * 1.4); ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.fillStyle = TYPES[noteType(p.n)].color; ctx.fill(); if (i === hover) { ctx.strokeStyle = '#f9b508'; ctx.lineWidth = 3 / zoom; ctx.stroke(); } if (zoom > 0.5 || i === hover || p.deg > 2) { ctx.fillStyle = dark ? '#eef0fa' : '#12142b'; ctx.fillText(p.n.title.slice(0, 28), p.x, p.y + r + 13 / zoom); } });
+  const W = () => cv.clientWidth, H = () => cv.clientHeight; const dark = () => document.documentElement.dataset.theme === 'dark' || (!document.documentElement.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
+  const size = () => { const r = devicePixelRatio || 1; cv.width = W() * r; cv.height = H() * r; ctx.setTransform(r, 0, 0, r, 0, 0); layout(); draw(); };
+  const mobile = () => W() < 640;
+  let centerNode = null;
+  function layout() {
+    MAP.nodes = []; MAP.edges = []; centerNode = null; MAP.hover = null; const keepSel = MAP.sel?.note?.id; MAP.sel = null; const w = W(), h = H(); const cx = w / 2, cy = h / 2;
+    if (MAP.mode === 'focus') {
+      const { center, rings } = mapCompute(); const R = Math.min(w, h) * (mobile() ? 0.46 : 0.47); const radii = [R * 0.42, R * 0.7, R * 0.98];
+      centerNode = { x: cx, y: cy, r: mobile() ? 26 : 34, center, title: center.title, sub: center.sub, note: center.note || null, isCenter: true }; if (center.note) MAP.nodes.push(centerNode);
+      const placed = new Map(); if (center.note) placed.set(center.note.id, centerNode);
+      rings.forEach((ring, ri) => { if (!ring.length) return;
+        const desired = ring.map(n => { let a = null; for (const t of noteLinks(n)) { const x = findByTitle(t); if (x && placed.has(x.id) && placed.get(x.id) !== centerNode) { a = Math.atan2(placed.get(x.id).y - cy, placed.get(x.id).x - cx); break; } } if (a == null) for (const b of backlinks(n.id)) { if (placed.has(b.id) && placed.get(b.id) !== centerNode) { a = Math.atan2(placed.get(b.id).y - cy, placed.get(b.id).x - cx); break; } } return { n, a }; });
+        const free = desired.filter(d => d.a == null), fixed = desired.filter(d => d.a != null).sort((p, q) => p.a - q.a);
+        const order = []; let fi = 0; for (let i = 0; i < ring.length; i++) { if (fi < fixed.length && (free.length === 0 || i % 2 === 0)) order.push(fixed[fi++].n); else if (free.length) order.push(free.shift().n); else order.push(fixed[fi++].n); }
+        const n0 = order.length; const off = -Math.PI / 2 + Math.PI / n0 + ri * 0.3;
+        order.forEach((n, i) => { const a = off + i * 2 * Math.PI / n0; const rr = radii[ri]; const node = { x: cx + Math.cos(a) * rr, y: cy + Math.sin(a) * rr, r: (mobile() ? 5 : 6) + mapImportance(n) * (mobile() ? 1.4 : 2), note: n, ring: ri, alert: mapAlert(n), stale: mapStale(n) }; MAP.nodes.push(node); placed.set(n.id, node); });
+      });
+      MAP.rings = radii.map((r, i) => ({ r, label: ['Trực tiếp', 'Liên quan', 'Nền'][i], n: rings[i].length }));
+      for (const a of MAP.nodes) { for (const t of noteLinks(a.note)) { const x = findByTitle(t); const b = x && placed.get(x.id); if (b && b !== a) MAP.edges.push([a, b]); } if (centerNode && !center.note && a.ring === 0) MAP.edges.push([centerNode, a, 'c']); }
+    } else if (MAP.mode === 'overview') {
+      const types = Object.keys(TYPES).filter(k => k !== 'thu-nhan'); const notes = [...S.notes.values()]; const groups = types.map(k => ({ k, list: sortedNotes(notes.filter(n => noteType(n) === k)) })).filter(g => g.list.length);
+      const R = Math.min(w, h) * 0.36; const n0 = groups.length; const total = notes.length || 1;
+      groups.forEach((g, i) => { const a = -Math.PI / 2 + i * 2 * Math.PI / n0; const gx = n0 === 1 ? cx : cx + Math.cos(a) * R, gy = n0 === 1 ? cy : cy + Math.sin(a) * R; const gr = (mobile() ? 16 : 22) + Math.sqrt(g.list.length / total) * (mobile() ? 34 : 56);
+        const cluster = { x: gx, y: gy, r: gr, cluster: g.k, count: g.list.length, alerts: g.list.filter(mapAlert).length, title: TYPES[g.k].label }; MAP.nodes.push(cluster);
+        g.list.slice(0, mobile() ? 6 : 10).forEach((n, j, arr) => { const b = a + (j - (arr.length - 1) / 2) * (0.9 / Math.max(1, arr.length - 1) * 2); const rr = gr + 26; MAP.nodes.push({ x: gx + Math.cos(b) * rr, y: gy + Math.sin(b) * rr, r: 4 + mapImportance(n) * 1.1, note: n, alert: mapAlert(n), stale: mapStale(n), of: cluster }); });
+      });
+      const byId = new Map(MAP.nodes.filter(x => x.note).map(x => [x.note.id, x])); for (const a of MAP.nodes) { if (!a.note) continue; for (const t of noteLinks(a.note)) { const x = findByTitle(t); const b = x && byId.get(x.id); if (b) MAP.edges.push([a, b]); } }
+    } else {
+      const notes = sortedNotes([...S.notes.values()].filter(n => noteType(n) !== 'thu-nhan')); const days = mobile() ? 30 : 90; const t0 = Date.now() - days * 86400000;
+      const lanes = Object.keys(TYPES).filter(k => k !== 'thu-nhan' && notes.some(n => noteType(n) === k)); const padL = mobile() ? 10 : 120, padR = 30, top = 40, laneH = (h - top - 40) / Math.max(1, lanes.length);
+      MAP.lanes = lanes.map((k, i) => ({ k, y: top + laneH * i + laneH / 2, label: TYPES[k].label })); MAP.axis = { x0: padL, x1: w - padR, t0, t1: Date.now() + 86400000 };
+      const tx = t => padL + (Math.max(t0, Math.min(Date.now() + 86400000, t)) - t0) / (Date.now() + 86400000 - t0) * (w - padL - padR);
+      notes.forEach(n => { const f = noteFm(n); const t = f.ngay ? new Date(f.ngay + 'T12:00:00').getTime() : n.updated; if (t < t0 - 86400000) return; const li = lanes.indexOf(noteType(n)); MAP.nodes.push({ x: tx(t), y: top + laneH * li + laneH / 2 + ((n.id.charCodeAt(3) % 5) - 2) * (laneH * 0.12), r: 4 + mapImportance(n) * 1.3, note: n, alert: mapAlert(n), stale: false }); });
+      const byId = new Map(MAP.nodes.map(x => [x.note.id, x])); for (const a of MAP.nodes) for (const t of noteLinks(a.note)) { const x = findByTitle(t); const b = x && byId.get(x.id); if (b) MAP.edges.push([a, b]); }
+    }
+    if (keepSel) MAP.sel = MAP.nodes.find(x => x.note?.id === keepSel) || null;
+    const vis = MAP.nodes.filter(x => x.note).length; const alerts = MAP.nodes.filter(x => x.alert).length;
+    $('#mapStat').innerHTML = `${vis} ghi chú trên bản đồ${alerts ? ` · <b style="color:var(--red)">${alerts} cần chú ý</b>` : ''} · <span class="hint">bấm nút để xem thẻ, kéo để di chuyển, lăn chuột để phóng</span>`;
+  }
+  const label = (t, n = 26) => t.length > n ? t.slice(0, n - 1) + '…' : t;
+  function pill(x, y, text, opts = {}) { ctx.font = `${opts.bold ? '700' : '500'} ${opts.size || 11.5}px ${getComputedStyle(document.body).fontFamily}`; const w = ctx.measureText(text).width + 12, h = (opts.size || 11.5) + 8; ctx.fillStyle = opts.bg || (dark() ? 'rgba(18,20,43,.88)' : 'rgba(255,255,255,.9)'); ctx.beginPath(); ctx.roundRect(x - w / 2, y - h / 2, w, h, 6); ctx.fill(); if (opts.stroke) { ctx.strokeStyle = opts.stroke; ctx.lineWidth = 1; ctx.stroke(); } ctx.fillStyle = opts.color || (dark() ? '#eef0fa' : '#12142b'); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, x, y); }
+  function draw() {
+    const w = W(), h = H(); ctx.clearRect(0, 0, w, h); const dk = dark();
+    ctx.save(); ctx.translate(MAP.ox, MAP.oy); ctx.scale(MAP.zoom, MAP.zoom);
+    const sel = MAP.sel, hov = MAP.hover; const focusSet = new Set(); const f = sel || hov; if (f) { focusSet.add(f); MAP.edges.forEach(([a, b]) => { if (a === f) focusSet.add(b); if (b === f) focusSet.add(a); }); }
+    if (MAP.mode === 'focus') { const cx = w / 2, cy = h / 2; (MAP.rings || []).forEach((rg, i) => { ctx.beginPath(); ctx.setLineDash([4, 6]); ctx.strokeStyle = dk ? 'rgba(158,166,255,.22)' : 'rgba(26,31,122,.16)'; ctx.lineWidth = 1; ctx.arc(cx, cy, rg.r, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]); if (!mobile()) pill(cx, cy - rg.r, `${rg.label} · ${rg.n}`, { size: 10.5, color: dk ? '#b6bad6' : '#474a66' }); }); }
+    if (MAP.mode === 'time') { const { x0, x1, t0, t1 } = MAP.axis; ctx.strokeStyle = dk ? 'rgba(158,166,255,.18)' : 'rgba(26,31,122,.12)'; MAP.lanes.forEach(l => { ctx.beginPath(); ctx.moveTo(x0, l.y); ctx.lineTo(x1, l.y); ctx.stroke(); if (!mobile()) { ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillStyle = dk ? '#b6bad6' : '#474a66'; ctx.font = `600 11px ${getComputedStyle(document.body).fontFamily}`; ctx.fillText(l.label, 12, l.y); } });
+      const weeks = Math.round((t1 - t0) / (7 * 86400000)); for (let i = 0; i <= weeks; i++) { const t = t0 + i * 7 * 86400000; const x = x0 + (t - t0) / (t1 - t0) * (x1 - x0); ctx.beginPath(); ctx.strokeStyle = dk ? 'rgba(158,166,255,.12)' : 'rgba(26,31,122,.08)'; ctx.moveTo(x, 24); ctx.lineTo(x, h - 24); ctx.stroke(); if (i % (mobile() ? 2 : 1) === 0) pill(x, 16, fmtDate(todayISO(new Date(t))).slice(0, 5), { size: 10, color: dk ? '#b6bad6' : '#474a66' }); }
+      const xn = x0 + (Date.now() - t0) / (t1 - t0) * (x1 - x0); ctx.strokeStyle = '#f9b508'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(xn, 24); ctx.lineTo(xn, h - 24); ctx.stroke(); pill(xn, 36, 'hôm nay', { size: 10.5, bold: true, bg: '#f9b508', color: '#030548' }); }
+    for (const e of MAP.edges) { const [a, b] = e; const on = f && (a === f || b === f); ctx.beginPath(); ctx.strokeStyle = on ? '#f9b508' : (dk ? 'rgba(158,166,255,.28)' : 'rgba(26,31,122,.18)'); ctx.lineWidth = on ? 2.2 : 1; if (e[2] === 'c') ctx.setLineDash([2, 5]); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); ctx.setLineDash([]); }
+    for (const nd of MAP.nodes) {
+      if (nd.isCenter) continue; const dim = f && !focusSet.has(nd); ctx.globalAlpha = dim ? 0.25 : (nd.stale ? 0.5 : 1);
+      if (nd.cluster) { ctx.beginPath(); ctx.arc(nd.x, nd.y, nd.r, 0, Math.PI * 2); ctx.fillStyle = TYPES[nd.cluster].color; ctx.fill(); ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = `800 ${Math.max(13, nd.r * 0.6)}px ${getComputedStyle(document.body).fontFamily}`; ctx.fillText(nd.count, nd.x, nd.y - 2); pill(nd.x, nd.y + nd.r + 14, nd.title + (nd.alerts ? ` · ${nd.alerts} cần chú ý` : ''), { bold: true, stroke: nd.alerts ? '#d42a2a' : null }); continue; }
+      const col = TYPES[noteType(nd.note)].color; ctx.beginPath(); ctx.arc(nd.x, nd.y, nd.r, 0, Math.PI * 2); ctx.fillStyle = nd.stale ? (dk ? '#4a4f78' : '#c7cae0') : col; ctx.fill();
+      if (nd.alert) { ctx.beginPath(); ctx.arc(nd.x, nd.y, nd.r + 3.5, 0, Math.PI * 2); ctx.strokeStyle = '#d42a2a'; ctx.lineWidth = 2.5; ctx.stroke(); }
+      if (nd === sel || nd === hov) { ctx.beginPath(); ctx.arc(nd.x, nd.y, nd.r + 7, 0, Math.PI * 2); ctx.strokeStyle = '#f9b508'; ctx.lineWidth = 3; ctx.stroke(); }
+      const showLbl = MAP.mode !== 'overview' ? (nd.ring !== 2 || nd.r > 9 || focusSet.has(nd) || MAP.zoom > 1.3 || !mobile() && MAP.nodes.length < 30) : (focusSet.has(nd) || MAP.zoom > 1.6);
+      if (showLbl && !dim) pill(nd.x, nd.y + nd.r + 12, label(nd.note.title, mobile() ? 18 : 28), { size: nd.ring === 0 || nd === sel ? 12 : 11, bold: nd.ring === 0 || nd === sel });
+    }
+    ctx.globalAlpha = 1;
+    if (centerNode) { const c = centerNode; const g = ctx.createRadialGradient(c.x, c.y, c.r * 0.3, c.x, c.y, c.r * 2.2); g.addColorStop(0, 'rgba(249,181,8,.35)'); g.addColorStop(1, 'rgba(249,181,8,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(c.x, c.y, c.r * 2.2, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2); ctx.fillStyle = '#030548'; ctx.fill(); ctx.strokeStyle = '#f9b508'; ctx.lineWidth = 3; ctx.stroke();
+      ctx.fillStyle = '#f9b508'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = `800 ${mobile() ? 11 : 13}px ${getComputedStyle(document.body).fontFamily}`; const t = c.title; const parts = t.length > 18 ? [t.slice(0, 18), t.slice(18, 36)] : [t]; parts.forEach((p, i) => ctx.fillText(p, c.x, c.y + (i - (parts.length - 1) / 2) * 14)); pill(c.x, c.y + c.r + 15, c.sub, { size: 10.5, color: dk ? '#b6bad6' : '#474a66' }); }
     ctx.restore();
-  };
-  const loop = () => { step(); draw(); raf = requestAnimationFrame(loop); };
-  cancelAnimationFrame(G?.raf); G = { raf: 0 }; loop(); G.raf = raf;
-  const pt = e => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left - ox) / zoom, y: (e.clientY - r.top - oy) / zoom }; };
-  const hit = e => { const p = pt(e); let best = -1, bd = 14 / zoom; nodes.forEach((q, i) => { const d = Math.hypot(q.x - p.x, q.y - p.y); if (d < bd) { bd = d; best = i; } }); return best; };
-  cv.addEventListener('pointerdown', e => { touched = true; const i = hit(e); if (i >= 0) { drag = nodes[i]; drag._moved = false; } else pan = { x: e.clientX - ox, y: e.clientY - oy }; cv.setPointerCapture(e.pointerId); ticks = Math.min(ticks, 380); });
-  cv.addEventListener('pointermove', e => { if (drag) { const p = pt(e); drag.x = p.x; drag.y = p.y; drag._moved = true; ticks = 300; } else if (pan) { ox = e.clientX - pan.x; oy = e.clientY - pan.y; } else { hover = hit(e); cv.style.cursor = hover >= 0 ? 'pointer' : 'grab'; } if (ticks > 420) draw(); });
-  cv.addEventListener('pointerup', e => { if (drag && !drag._moved) location.hash = '#/note/' + drag.n.id; drag = null; pan = null; });
-  cv.addEventListener('wheel', e => { e.preventDefault(); touched = true; const r = cv.getBoundingClientRect(); const mx = e.clientX - r.left, my = e.clientY - r.top; const z = Math.max(0.3, Math.min(3, zoom * (e.deltaY < 0 ? 1.1 : 0.9))); ox = mx - (mx - ox) * z / zoom; oy = my - (my - oy) * z / zoom; zoom = z; if (ticks > 420) draw(); }, { passive: false });
+  }
+  const pt = e => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left - MAP.ox) / MAP.zoom, y: (e.clientY - r.top - MAP.oy) / MAP.zoom }; };
+  const hit = e => { const p = pt(e); let best = null, bd = 1e9; for (const nd of MAP.nodes) { const d = Math.hypot(nd.x - p.x, nd.y - p.y) - nd.r; if (d < 10 / MAP.zoom && d < bd) { bd = d; best = nd; } } return best; };
+  let pan = null, moved = false;
+  cv.onpointerdown = e => { pan = { x: e.clientX - MAP.ox, y: e.clientY - MAP.oy, hit: hit(e) }; moved = false; cv.setPointerCapture(e.pointerId); };
+  cv.onpointermove = e => { if (pan) { const dx = e.clientX - pan.x - MAP.ox, dy = e.clientY - pan.y - MAP.oy; if (Math.hypot(dx, dy) > 3) moved = true; if (moved) { MAP.ox = e.clientX - pan.x; MAP.oy = e.clientY - pan.y; MAP.touched = true; draw(); } } else { const hv = hit(e); if (hv !== MAP.hover) { MAP.hover = hv; cv.style.cursor = hv ? 'pointer' : 'grab'; draw(); } } };
+  cv.onpointerup = e => { if (pan && !moved) { const nd = pan.hit; if (nd && nd.cluster) { location.hash = '#/view/list/' + nd.cluster; } else if (nd && nd.note) { MAP.sel = nd === MAP.sel ? null : nd; showCard(); draw(); } else if (nd && nd.isCenter && nd.note) { location.hash = '#/note/' + nd.note.id; } else { MAP.sel = null; showCard(); draw(); } } pan = null; };
+  cv.onwheel = e => { e.preventDefault(); const r = cv.getBoundingClientRect(); const mx = e.clientX - r.left, my = e.clientY - r.top; const z = Math.max(0.5, Math.min(3, MAP.zoom * (e.deltaY < 0 ? 1.1 : 0.9))); MAP.ox = mx - (mx - MAP.ox) * z / MAP.zoom; MAP.oy = my - (my - MAP.oy) * z / MAP.zoom; MAP.zoom = z; MAP.touched = true; draw(); };
+  function showCard() {
+    const card = $('#mapCard'); const nd = MAP.sel; if (!nd || !nd.note) { card.hidden = true; return; }
+    const n = nd.note; const f = noteFm(n); const tasks = allTasks().filter(t => t.noteId === n.id && !t.done).slice(0, 4); const facts = [f.chu_so_huu && 'Chủ sở hữu: ' + f.chu_so_huu, f.nguoi_quyet && 'Người quyết: ' + f.nguoi_quyet, f.trang_thai && (STATUS[f.trang_thai] || f.trang_thai), f.han && 'Hạn ' + fmtDate(f.han), f.ra_soat && 'Rà soát ' + fmtDate(f.ra_soat), f.tien_do && 'Tiến độ ' + f.tien_do + '%'].filter(Boolean);
+    card.hidden = false; card.innerHTML = `<div class="mc-h">${typePill(noteType(n))} <i class="dot lv-${noteLevel(n)}"></i><button class="btn sm x" data-mapclose>${ic('x')}</button></div><h3>${esc(n.title)}</h3>${nd.alert ? '<div class="mc-alert">Cần chú ý: có việc quá hạn hoặc đến hạn rà soát</div>' : ''}<p class="hint">${esc(excerpt(n, 180))}</p>${facts.length ? `<div class="mc-facts">${facts.map(x => `<span class="chip">${esc(x)}</span>`).join('')}</div>` : ''}${tasks.length ? `<div class="mc-tasks">${tasks.map(t => `<div class="row"><input type="checkbox" data-task="${t.noteId}:${t.line}"><div class="t">${inline(t.text)}</div><span class="m ${t.due && daysDiff(t.due) < 0 ? 'over' : ''}">${t.due ? fmtDate(t.due) : ''}</span></div>`).join('')}</div>` : ''}<div class="hint">${backlinks(n.id).length} liên kết về · ${noteLinks(n).length} liên kết đi · sửa ${rel(n.updated)}</div><div class="toolbar" style="margin:10px 0 0"><a class="btn navy" href="#/note/${n.id}">Mở ghi chú</a><button class="btn" data-mapfocus="${n.id}">Hội tụ vào đây</button><button class="btn" data-cmd="aiMap">${ic('ai')} Hỏi A.I</button></div>`;
+    $('[data-mapclose]', card).onclick = () => { MAP.sel = null; showCard(); draw(); };
+    $('[data-mapfocus]', card).onclick = () => { MAP.center = n.id; MAP.mode = 'focus'; MAP.sel = null; MAP.zoom = 1; MAP.ox = MAP.oy = 0; renderMain(); };
+  }
+  $$('[data-mm]').forEach(b => b.onclick = () => { MAP.mode = b.dataset.mm; MAP.sel = null; MAP.zoom = 1; MAP.ox = MAP.oy = 0; $$('[data-mm]').forEach(x => x.classList.toggle('on', x === b)); showCard(); layout(); draw(); });
+  let qT = null; $('#mapQ').oninput = e => { MAP.q = e.target.value; MAP.center = ''; $('#mapCenter').value = ''; MAP.mode = 'focus'; $$('[data-mm]').forEach(x => x.classList.toggle('on', x.dataset.mm === 'focus')); clearTimeout(qT); qT = setTimeout(() => { MAP.sel = null; showCard(); layout(); draw(); }, 150); };
+  $('#mapCenter').onchange = e => { MAP.center = e.target.value; MAP.q = ''; $('#mapQ').value = ''; MAP.mode = 'focus'; $$('[data-mm]').forEach(x => x.classList.toggle('on', x.dataset.mm === 'focus')); MAP.sel = null; MAP.zoom = 1; MAP.ox = MAP.oy = 0; showCard(); layout(); draw(); };
+  new ResizeObserver(size).observe(cv); size(); showCard();
 }
+function mapVisibleIds() { return (MAP.nodes || []).filter(x => x.note).map(x => x.note.id); }
 
 /* ---------------- Command palette ---------------- */
 const PAL = { items: [], idx: 0 };
@@ -1084,7 +1197,7 @@ function commands() {
     { k: 'Đi tới', t: 'Việc cần làm', run: () => location.hash = '#/view/tasks' },
     { k: 'Đi tới', t: 'Sổ quyết định', run: () => location.hash = '#/view/list/quyet-dinh' },
     { k: 'Đi tới', t: 'Nhân sự số', run: () => location.hash = '#/view/list/nhan-su-so' },
-    { k: 'Đi tới', t: 'Sơ đồ liên kết', run: () => location.hash = '#/view/graph' },
+    { k: 'Đi tới', t: 'Bản đồ tri thức', run: () => location.hash = '#/view/graph' },
     { k: 'Đi tới', t: 'Không gian & Cài đặt', run: () => location.hash = '#/view/data' },
     { k: 'Lệnh', t: 'Xuất .zip (Obsidian)', run: exportZip },
     { k: 'Lệnh', t: 'Đổi giao diện sáng / tối', run: toggleTheme },
@@ -1154,12 +1267,13 @@ async function callAI({ system = AI_SYSTEM, prompt }) {
   throw new Error('Nhà cung cấp không hỗ trợ');
 }
 // Gom ngữ cảnh theo phạm vi. Mức Đỏ luôn bị loại; mức Vàng tùy chọn.
-function buildPack({ cur = null, scopes = [], allowYellow = true } = {}) {
+function buildPack({ cur = null, scopes = [], allowYellow = true, ids = null } = {}) {
   const parts = []; const seen = new Set(); const skipped = []; let maxLevel = 'xanh';
   const add = (n, why) => { if (!n || seen.has(n.id) || noteType(n) === 'nhan-su-so') return; const lv = noteLevel(n); if (lv === 'do' || (lv === 'vang' && !allowYellow)) { skipped.push(n.title); return; } if (lv === 'vang') maxLevel = 'vang'; seen.add(n.id); parts.push(`### ${n.title}${why ? ` (${why})` : ''}\n${n.body.trim()}`); };
   const notes = [...S.notes.values()]; const recent = (t, days) => notes.filter(n => noteType(n) === t && (!noteFm(n).ngay || daysDiff(noteFm(n).ngay) >= -days));
   for (const sc of scopes) {
-    if (sc === 'ghi-chu-hien-tai' && cur) add(cur, 'ghi chú chính');
+    if (sc === 'ban-do' && ids) ids.forEach(id => add(S.notes.get(id), 'trên bản đồ'));
+    else if (sc === 'ghi-chu-hien-tai' && cur) add(cur, 'ghi chú chính');
     else if (sc === 'lien-ket' && cur) noteLinks(cur).forEach(t => add(findByTitle(t), 'được liên kết'));
     else if (sc === 'lien-ket-nguoc' && cur) backlinks(cur.id).forEach(n => add(n, 'trỏ tới ghi chú chính'));
     else if (sc === 'muc-tieu') notes.filter(n => noteType(n) === 'muc-tieu' && noteFm(n).trang_thai !== 'hoan-thanh').forEach(n => add(n, 'mục tiêu'));
@@ -1181,19 +1295,20 @@ const PROMPTS = {
   'giao-viec': { l: 'Soạn lệnh giao việc cho Nhân sự số', p: 'Từ ngữ cảnh, soạn một Prompt giao việc cho một A.I Agent theo 8 yếu tố: Bài toán · Dữ liệu · Công cụ/Model · Skill · Workflow · Output · Tương tác · Con người/Văn hóa. Nêu rõ điểm con người phải duyệt.' },
   'tu-do': { l: 'Tự viết yêu cầu', p: '' },
 };
-function aiPack() {
-  const cur = S.cur && S.notes.get(S.cur); const ai = AI.get();
+function aiPack(preset = null) {
+  const cur = S.cur && S.notes.get(S.cur); const ai = AI.get(); const ids = preset?.ids || null;
   openModal(`<h2>${ic('ai')} Hỏi A.I với ngữ cảnh <button class="btn sm x" data-close>${ic('x')}</button></h2>
   <p class="hint">Nền tảng gom các ghi chú liên quan thành ngữ cảnh. Ghi chú mức <b>Đỏ luôn bị loại</b>. ${ai.provider ? `Gửi thẳng qua <b>${esc(ai.provider === 'abm' ? 'Cổng A.I của ABM' : ai.provider)}</b>, hoặc sao chép để dán vào công cụ khác.` : 'Chưa cấu hình A.I trực tiếp: sao chép rồi dán vào Claude / ChatGPT / Gemini / NotebookLM.'}</p>
   <div class="opts"><label>Yêu cầu: <select id="aiP">${Object.entries(PROMPTS).map(([k, v]) => `<option value="${k}">${v.l}</option>`).join('')}</select></label></div>
   <textarea id="aiQ" rows="3" style="min-height:64px;font-family:var(--font-body)" placeholder="Viết thêm yêu cầu của Sếp (tùy chọn)…"></textarea>
   <div class="opts">
+  ${ids ? `<label><input type="checkbox" data-sc="ban-do" checked> Các ghi chú trên bản đồ (${ids.length})</label>` : ''}
   <label><input type="checkbox" data-sc="ghi-chu-hien-tai" ${cur ? 'checked' : 'disabled'}> Ghi chú hiện tại${cur ? ': ' + esc(cur.title) : ''}</label>
   <label><input type="checkbox" data-sc="lien-ket" ${cur ? 'checked' : 'disabled'}> Ghi chú được liên kết</label>
   <label><input type="checkbox" data-sc="lien-ket-nguoc" ${cur ? '' : 'disabled'}> Ghi chú trỏ tới</label>
   <label><input type="checkbox" data-sc="viec"> Việc đang mở</label>
   <label><input type="checkbox" data-sc="quyet-dinh"> Quyết định 30 ngày</label>
-  <label><input type="checkbox" data-sc="muc-tieu" ${cur ? '' : 'checked'}> Mục tiêu đang chạy</label>
+  <label><input type="checkbox" data-sc="muc-tieu" ${cur || ids ? '' : 'checked'}> Mục tiêu đang chạy</label>
   <label><input type="checkbox" data-sc="hop"> Họp 14 ngày</label>
   <label><input type="checkbox" id="aiYellow" checked> Cho phép mức Vàng</label></div>
   <textarea id="aiOut2" readonly style="min-height:160px"></textarea>
@@ -1202,7 +1317,7 @@ function aiPack() {
   let lastAnswer = '';
   const build = () => {
     const scopes = $$('#modal [data-sc]:checked').map(c => c.dataset.sc);
-    const pk = buildPack({ cur, scopes, allowYellow: $('#aiYellow').checked });
+    const pk = buildPack({ cur, scopes, allowYellow: $('#aiYellow').checked, ids });
     const p = [PROMPTS[$('#aiP').value].p, $('#aiQ').value.trim()].filter(Boolean).join('\n') || '[Viết yêu cầu của Sếp]';
     const txt = `${AI_SYSTEM}\n\n## YÊU CẦU\n${p}\n\n## NGỮ CẢNH (ngày ${fmtDate(todayISO())})\n${pk.text || '(chưa chọn ngữ cảnh)'}\n\n(Ghi chú: nội dung mức Đỏ đã bị loại khỏi ngữ cảnh theo chính sách dữ liệu.)`;
     $('#aiOut2').value = txt; $('#aiStat').textContent = `${pk.count} ghi chú · ~${(txt.length / 4 | 0).toLocaleString('vi-VN')} token${pk.skipped.length ? ` · bỏ qua ${pk.skipped.length} theo mức dữ liệu` : ''}`;
@@ -1836,6 +1951,7 @@ async function runCmd(c) {
   if (c.startsWith('new:')) return newFromTemplate(c.slice(4));
   if (c === 'capture') return quickCapture();
   if (c === 'ai') return aiPack();
+  if (c === 'aiMap') return aiPack({ ids: mapVisibleIds() });
   if (c === 'tplMenu') return tplMenu();
   if (c === 'exportMd') return exportMd();
   if (c === 'exportZip') return exportZip();
